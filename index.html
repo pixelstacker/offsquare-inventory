@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Off Square Theatre Co. — Inventory & Rental Beta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: #f4f4f5; }
+        .font-display { font-family: 'Oswald', sans-serif; letter-spacing: 0.03em; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Branded Top Header -->
+    <header class="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="relative w-10 h-10 border-2 border-amber-500 flex items-center justify-center shrink-0">
+                    <div class="w-5 h-5 bg-amber-500 translate-x-1 -translate-y-1"></div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-display font-bold text-xl uppercase tracking-wider text-white">Off Square Theatre Co.</h1>
+                        <span id="dbStatusBadge" class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Supabase Live</span>
+                    </div>
+                    <p class="text-xs text-zinc-400">Backstage Inventory, Locations & Rental Manager</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <div class="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-1">
+                    <span class="text-zinc-400 mr-1.5"><i class="fa-solid fa-user-shield text-amber-500"></i> Role:</span>
+                    <select id="roleSelect" onchange="changeRole(this.value)" class="bg-transparent text-white font-semibold focus:outline-none">
+                        <option value="ADMIN" class="bg-zinc-900">Shop Admin</option>
+                        <option value="STAFF" class="bg-zinc-900">Staff / Crew</option>
+                        <option value="GUEST" class="bg-zinc-900">Guest / Renter</option>
+                    </select>
+                </div>
+
+                <button onclick="loadFromSupabase()" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5" title="Refresh from Supabase">
+                    <i class="fa-solid fa-rotate text-sky-400"></i> <span class="hidden sm:inline">Sync</span>
+                </button>
+                <button onclick="exportBackup()" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5" title="Download JSON snapshot">
+                    <i class="fa-solid fa-download text-amber-400"></i> <span class="hidden sm:inline">JSON Export</span>
+                </button>
+                <button onclick="openCartModal()" class="bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                    <i class="fa-solid fa-cart-flatbed"></i> Pull Cart (<span id="cartCount">0</span>)
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto border-t border-zinc-900 pt-1">
+            <button onclick="switchTab('catalog')" id="tab-btn-catalog" class="tab-btn px-4 py-2 text-sm font-semibold border-b-2 border-amber-500 text-amber-400 whitespace-nowrap">
+                Catalog (<span id="stat-total">0</span>)
+            </button>
+            <button onclick="switchTab('locations')" id="tab-btn-locations" class="tab-btn px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white whitespace-nowrap">
+                Sites & Shelves (<span id="stat-locs">0</span>)
+            </button>
+            <button onclick="switchTab('printqueue')" id="tab-btn-printqueue" class="tab-btn staff-only px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white whitespace-nowrap">
+                Dymo Print Queue (<span id="stat-print">0</span>)
+            </button>
+            <button onclick="switchTab('maintenance')" id="tab-btn-maintenance" class="tab-btn staff-only px-4 py-2 text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-white whitespace-nowrap">
+                Repairs (<span id="stat-maint">0</span>)
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl w-full mx-auto px-4 py-5 flex-1">
+
+        <!-- CATALOG -->
+        <section id="view-catalog" class="space-y-4">
+            <div class="bg-zinc-900/90 border border-zinc-800 p-3.5 rounded-xl flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap gap-2.5 flex-1 min-w-[240px]">
+                    <div class="relative flex-1 min-w-[200px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-zinc-500 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="renderCatalog()" placeholder="Search SKU, name, measurements, notes..." class="w-full bg-zinc-950 border border-zinc-700 rounded-lg pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:border-amber-500">
+                    </div>
+                    <select id="deptFilter" onchange="renderCatalog()" class="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm">
+                        <option value="">All Departments</option>
+                        <option value="PROPS">Props</option>
+                        <option value="COSTUMES">Costumes</option>
+                        <option value="LIGHTING">Lighting</option>
+                        <option value="AUDIO_VIDEO">Audio / Video</option>
+                        <option value="SCENERY_SET">Scenery / Set</option>
+                        <option value="HARDWARE_TOOLS">Hardware & Tools</option>
+                    </select>
+                    <select id="siteFilter" onchange="renderCatalog()" class="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm">
+                        <option value="">All Sites / Locations</option>
+                    </select>
+                </div>
+                <button onclick="openItemModal()" class="staff-only bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Add / Scan Item
+                </button>
+            </div>
+            <div id="catalogGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- LOCATIONS -->
+        <section id="view-locations" class="hidden space-y-4">
+            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex flex-wrap justify-between items-center gap-3">
+                <div>
+                    <h2 class="font-display text-lg uppercase font-bold text-white">Multi-Site Storage & Shelf Hierarchy</h2>
+                    <p class="text-xs text-zinc-400">Admins can create top-level facilities and nest rooms, aisles, racks, shelves, and bins.</p>
+                </div>
+                <button onclick="openLocationModal(null)" class="admin-only bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold px-3.5 py-2 rounded-lg text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-building"></i> + New Top-Level Site
+                </button>
+            </div>
+            <div id="locationsTree" class="space-y-3"></div>
+        </section>
+
+        <!-- PRINT QUEUE -->
+        <section id="view-printqueue" class="hidden space-y-4">
+            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex flex-wrap justify-between items-center gap-3">
+                <div>
+                    <h2 class="font-display text-lg uppercase font-bold text-white">Dymo LabelWriter 400 Batch Print Queue</h2>
+                    <p class="text-xs text-zinc-400">Items flagged for tagging while scanning in the field.</p>
+                </div>
+                <button onclick="clearPrintQueue()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3.5 py-2 rounded-lg text-xs font-semibold">
+                    Mark All Printed
+                </button>
+            </div>
+            <div id="printQueueList" class="space-y-2"></div>
+        </section>
+
+        <!-- MAINTENANCE -->
+        <section id="view-maintenance" class="hidden space-y-4">
+            <div class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center">
+                <div>
+                    <h2 class="font-display text-lg uppercase font-bold text-white">Shop Repair Checklist</h2>
+                    <p class="text-xs text-zinc-400">Active condition issues logged across departments.</p>
+                </div>
+                <button onclick="addQuickIssue()" class="bg-rose-600 hover:bg-rose-500 text-white font-semibold px-3.5 py-2 rounded-lg text-xs">
+                    + Log Issue
+                </button>
+            </div>
+            <div id="maintenanceList" class="space-y-2"></div>
+        </section>
+
+    </main>
+
+    <!-- ADD / EDIT ITEM MODAL -->
+    <div id="itemModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-3 overflow-y-auto">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-lg w-full p-5 space-y-4 my-auto">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 id="itemModalTitle" class="font-display text-lg uppercase font-bold text-amber-400">Add / Scan New Item</h3>
+                <button onclick="closeModal('itemModal')" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="itemForm" onsubmit="saveItem(event)" class="space-y-3 text-sm">
+                <input type="hidden" id="editItemId">
+                <input type="hidden" id="existingPhotoUrl">
+
+                <div class="flex items-center gap-3 bg-zinc-950 p-3 rounded-xl border border-zinc-800">
+                    <img id="itemPhotoPreview" src="" class="hidden w-16 h-16 object-cover rounded-lg border border-zinc-700">
+                    <div class="flex-1">
+                        <label class="inline-flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">
+                            <i class="fa-solid fa-camera text-amber-400"></i> Take / Choose Photo
+                            <input type="file" accept="image/*" capture="environment" onchange="handlePhotoSelect(event)" class="hidden">
+                        </label>
+                        <p id="photoStatusText" class="text-[11px] text-zinc-500 mt-1">Uploads to Supabase Storage bucket: item-photos</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-zinc-400 mb-1">SKU / Tag Code *</label>
+                        <input type="text" id="itemSku" required placeholder="e.g. PRP-LAMP-04" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-zinc-400 mb-1">Department *</label>
+                        <select id="itemDept" onchange="toggleCostumeFields()" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2">
+                            <option value="PROPS">Props</option>
+                            <option value="COSTUMES">Costumes</option>
+                            <option value="LIGHTING">Lighting</option>
+                            <option value="AUDIO_VIDEO">Audio / Video</option>
+                            <option value="SCENERY_SET">Scenery / Set</option>
+                            <option value="HARDWARE_TOOLS">Hardware & Tools</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">Item Name *</label>
+                    <input type="text" id="itemName" required placeholder="e.g. Brass Art Deco Table Lamp" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2">
+                </div>
+
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">Site / Shelf Location *</label>
+                    <select id="itemLocationId" required class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2"></select>
+                </div>
+
+                <div id="costumeFields" class="hidden bg-zinc-950/80 border border-amber-500/30 rounded-xl p-3 space-y-2.5">
+                    <div class="text-xs font-bold text-amber-400 uppercase tracking-wider">Costume Wardrobe Specs</div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="cstEra" placeholder="Era (e.g. 1920s)" class="bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs">
+                        <input type="text" id="cstSize" placeholder="Size (e.g. 42R / M)" class="bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs">
+                        <input type="text" id="cstColor" placeholder="Color / Fabric" class="bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" id="cstChest" placeholder="Chest/Bust (in)" class="bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs">
+                        <input type="text" id="cstWaist" placeholder="Waist (in)" class="bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1.5 text-xs">
+                        <select id="cstCare" class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1.5 text-xs">
+                            <option value="Dry Clean Only">Dry Clean Only</option>
+                            <option value="Machine Wash Cold">Machine Wash Cold</option>
+                            <option value="Spot Clean Only">Spot Clean Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">Specs, Measurements & Condition Notes</label>
+                    <textarea id="itemNotes" rows="2" placeholder="Dimensions, wattage, connectors, or repair notes..." class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label class="block text-xs text-zinc-400 mb-1">Rental Visibility</label>
+                        <select id="itemVisibility" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs">
+                            <option value="PUBLIC_RENTABLE">Public / Rentable</option>
+                            <option value="INTERNAL_ONLY">Internal Only (No Rental)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end pb-2">
+                        <label class="flex items-center gap-2 text-xs text-zinc-200 cursor-pointer">
+                            <input type="checkbox" id="itemQueuePrint" checked class="rounded text-amber-500">
+                            Queue Dymo 400 Tag
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                    <button type="button" onclick="closeModal('itemModal')" class="px-4 py-2 rounded-lg bg-zinc-800 text-xs font-semibold">Cancel</button>
+                    <button type="submit" id="saveItemBtn" class="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-zinc-950 text-xs font-bold">Save to Supabase</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD SITE / SUB-SHELF MODAL -->
+    <div id="locationModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-3">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-md w-full p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="font-display text-lg uppercase font-bold text-amber-400">Add Site / Shelf</h3>
+                <button onclick="closeModal('locationModal')" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveLocation(event)" class="space-y-3 text-sm">
+                <input type="hidden" id="locParentId">
+                <div id="locParentBanner" class="hidden text-xs bg-zinc-950 border border-zinc-800 p-2 rounded-lg text-amber-400"></div>
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">Location / Shelf Name *</label>
+                    <input type="text" id="locName" required placeholder="e.g. Aisle B - Wire Rack 2 - Shelf 3" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-zinc-400 mb-1">Dymo Shelf Code *</label>
+                        <input type="text" id="locCode" required placeholder="SHOP-B-R2-S3" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-zinc-400 mb-1">Space Type</label>
+                        <select id="locType" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-2.5 py-2 text-xs">
+                            <option value="SITE">Building / Storage Site</option>
+                            <option value="ROOM">Room / Unit / Booth</option>
+                            <option value="RACK_SHELF">Aisle / Rack / Shelf</option>
+                            <option value="BIN_TOTE">Tote / Case / Bin</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">Gate Code / Access Notes (Staff/Admin Only)</label>
+                    <input type="text" id="locAccess" placeholder="e.g. Gate #4419* — Lockbox key in shop" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('locationModal')" class="px-4 py-2 rounded-lg bg-zinc-800 text-xs">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-amber-600 text-zinc-950 text-xs font-bold">Save Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PULL CART MODAL -->
+    <div id="cartModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-3">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl max-w-lg w-full p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 class="font-display text-lg uppercase font-bold text-amber-400"><i class="fa-solid fa-cart-flatbed mr-1"></i> Show / Rental Pull Bucket</h3>
+                <button onclick="closeModal('cartModal')" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+                <input type="text" id="cartShowName" placeholder="Production or Borrower Name" class="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2">
+                <input type="date" id="cartReturnDate" class="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-300">
+            </div>
+            <div id="cartItemsList" class="max-h-64 overflow-y-auto space-y-2 text-xs"></div>
+            <div class="flex justify-between items-center pt-2 border-t border-zinc-800">
+                <button onclick="clearCart()" class="text-xs text-rose-400 hover:underline">Clear Bucket</button>
+                <button onclick="checkoutCart()" class="bg-amber-600 hover:bg-amber-500 text-zinc-950 font-bold px-4 py-2 rounded-lg text-xs">Confirm Pull / Request</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://nsowgxogwfupnedsroxi.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_paleGRLwnEangvUWgtHbhQ_fcaTatT9';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentRole = 'ADMIN';
+        let pendingPhotoBlob = null;
+        let pullCart = [];
+        let db = { locations: [], items: [], issues: [] };
+
+        async function loadFromSupabase() {
+            const badge = document.getElementById('dbStatusBadge');
+            badge.innerText = 'Syncing...';
+            try {
+                const [locRes, itemRes, maintRes] = await Promise.all([
+                    sb.from('locations').select('*').order('created_at', { ascending: true }),
+                    sb.from('items').select('*').neq('status', 'RETIRED').order('created_at', { ascending: false }),
+                    sb.from('maintenance_logs').select('*').order('created_at', { ascending: false })
+                ]);
+                if (locRes.error) throw locRes.error;
+                if (itemRes.error) throw itemRes.error;
+                if (maintRes.error) throw maintRes.error;
+
+                db.locations = locRes.data || [];
+                db.items = itemRes.data || [];
+                db.issues = maintRes.data || [];
+                badge.innerText = 'Supabase Live';
+                badge.className = 'text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                renderAll();
+            } catch (err) {
+                console.error(err);
+                badge.innerText = 'DB Check Needed';
+                badge.className = 'text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
+                alert('Could not load from Supabase yet. Check that schema.sql and beta RLS policies ran in SQL Editor:\n' + err.message);
+            }
+        }
+
+        function getLocationPath(locId) {
+            const parts = [];
+            let curr = db.locations.find(l => l.id === locId);
+            let guard = 0;
+            while (curr && guard < 15) {
+                parts.unshift(curr.name);
+                curr = db.locations.find(l => l.id === curr.parent_id);
+                guard++;
+            }
+            return parts.join(' › ') || 'Unassigned';
+        }
+
+        function changeRole(role) {
+            currentRole = role;
+            document.querySelectorAll('.staff-only').forEach(el => el.classList.toggle('hidden', role === 'GUEST'));
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', role !== 'ADMIN'));
+            if (role === 'GUEST') switchTab('catalog');
+            renderAll();
+        }
+
+        function switchTab(name) {
+            ['catalog', 'locations', 'printqueue', 'maintenance'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.toggle('hidden', t !== name);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                btn.classList.toggle('border-amber-500', t === name);
+                btn.classList.toggle('text-amber-400', t === name);
+                btn.classList.toggle('border-transparent', t !== name);
+                btn.classList.toggle('text-zinc-400', t !== name);
+            });
+            renderAll();
+        }
+
+        function renderAll() {
+            populateLocationSelects();
+            renderCatalog();
+            renderLocations();
+            renderPrintQueue();
+            renderMaintenance();
+            const visibleItems = db.items.filter(i => currentRole !== 'GUEST' || i.visibility !== 'INTERNAL_ONLY');
+            document.getElementById('stat-total').innerText = visibleItems.length;
+            document.getElementById('stat-locs').innerText = db.locations.length;
+            document.getElementById('stat-print').innerText = db.items.filter(i => i.print_queued).length;
+            document.getElementById('stat-maint').innerText = db.issues.filter(i => !i.resolved).length;
+            document.getElementById('cartCount').innerText = pullCart.length;
+        }
+
+        function populateLocationSelects() {
+            const filterSel = document.getElementById('siteFilter');
+            const itemSel = document.getElementById('itemLocationId');
+            const currentFilter = filterSel.value;
+            filterSel.innerHTML = '<option value="">All Sites / Locations</option>';
+            itemSel.innerHTML = '';
+            db.locations.forEach(loc => {
+                const path = getLocationPath(loc.id);
+                filterSel.innerHTML += `<option value="${loc.id}">${path}</option>`;
+                itemSel.innerHTML += `<option value="${loc.id}">${path} (${loc.code})</option>`;
+            });
+            filterSel.value = currentFilter;
+        }
+
+        function renderCatalog() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const dept = document.getElementById('deptFilter').value;
+            const site = document.getElementById('siteFilter').value;
+            const grid = document.getElementById('catalogGrid');
+
+            const filtered = db.items.filter(item => {
+                if (currentRole === 'GUEST' && item.visibility === 'INTERNAL_ONLY') return false;
+                if (dept && item.department !== dept) return false;
+                if (site && item.location_id !== site && !getLocationPath(item.location_id).includes(getLocationPath(site))) return false;
+                const hay = `${item.sku} ${item.name} ${item.notes || ''} ${JSON.stringify(item.specifications || {})}`.toLowerCase();
+                return hay.includes(q);
+            });
+
+            grid.innerHTML = filtered.map(item => {
+                const c = item.department === 'COSTUMES' && item.specifications ? item.specifications : null;
+                return `
+                <div class="bg-zinc-900 border ${item.visibility === 'INTERNAL_ONLY' ? 'border-rose-500/40' : 'border-zinc-800'} rounded-xl overflow-hidden flex flex-col justify-between">
+                    <div>
+                        ${item.photo_url ? `<img src="${item.photo_url}" class="w-full h-44 object-cover border-b border-zinc-800">` : ''}
+                        <div class="p-4 space-y-2">
+                            <div class="flex justify-between items-start gap-2">
+                                <span class="font-mono text-xs font-bold text-amber-400">${item.sku}</span>
+                                <div class="flex gap-1 flex-wrap justify-end">
+                                    ${item.visibility === 'INTERNAL_ONLY' ? `<span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">Internal Only</span>` : ''}
+                                    <span class="text-[10px] uppercase px-2 py-0.5 rounded bg-zinc-950 text-zinc-300 border border-zinc-700">${item.department}</span>
+                                </div>
+                            </div>
+                            <h3 class="font-bold text-base text-white leading-snug">${item.name}</h3>
+                            <p class="text-xs text-zinc-400"><i class="fa-solid fa-location-dot text-amber-500 mr-1"></i> ${getLocationPath(item.location_id)}</p>
+                            ${c ? `<div class="text-[11px] bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-zinc-300">
+                                <strong>${c.era || ''}</strong> • Size ${c.size || 'N/A'} (${c.chest || '-'} / ${c.waist || '-'}) • <span class="text-amber-400">${c.care || ''}</span>
+                            </div>` : ''}
+                            ${item.notes ? `<p class="text-xs text-zinc-300">${item.notes}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="px-4 py-2.5 bg-zinc-950/70 border-t border-zinc-800 flex justify-between items-center gap-2">
+                        <button onclick="addToCart('${item.id}')" class="text-xs font-semibold text-amber-400 hover:text-amber-300">
+                            <i class="fa-solid fa-plus-circle mr-1"></i> Add to Cart
+                        </button>
+                        ${currentRole !== 'GUEST' ? `
+                        <div class="flex gap-2">
+                            <button onclick="togglePrintQueue('${item.id}', ${!item.print_queued})" class="text-xs px-2 py-1 rounded ${item.print_queued ? 'bg-amber-500/20 text-amber-300' : 'bg-zinc-800 text-zinc-400'}" title="Toggle Dymo Print Queue">
+                                <i class="fa-solid fa-tag"></i>
+                            </button>
+                            <button onclick="openItemModal('${item.id}')" class="text-xs px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200" title="Edit Item">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>` : ''}
+                    </div>
+                </div>`;
+            }).join('') || `<div class="col-span-full text-center py-10 text-zinc-500 text-sm">No matching items found.</div>`;
+        }
+
+        function renderLocations() {
+            const container = document.getElementById('locationsTree');
+            function buildBranch(parentId, depth) {
+                return db.locations.filter(l => l.parent_id === parentId).map(loc => `
+                    <div style="margin-left: ${depth * 16}px" class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-wrap justify-between items-center gap-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono text-xs text-amber-400 font-bold">${loc.code}</span>
+                                <span class="font-semibold text-sm text-white">${loc.name}</span>
+                                <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-zinc-950 text-zinc-400 border border-zinc-800">${loc.location_type}</span>
+                            </div>
+                            ${loc.access_instructions && currentRole !== 'GUEST' ? `<div class="text-xs text-emerald-400 mt-1"><i class="fa-solid fa-key mr-1"></i> ${loc.access_instructions}</div>` : ''}
+                        </div>
+                        ${currentRole === 'ADMIN' ? `
+                        <button onclick="openLocationModal('${loc.id}')" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-2.5 py-1 rounded-lg">
+                            + Add Sub-Shelf / Bin
+                        </button>` : ''}
+                    </div>
+                    ${buildBranch(loc.id, depth + 1)}
+                `).join('');
+            }
+            container.innerHTML = buildBranch(null, 0);
+        }
+
+        function renderPrintQueue() {
+            const queued = db.items.filter(i => i.print_queued);
+            document.getElementById('printQueueList').innerHTML = queued.map(i => `
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex justify-between items-center text-xs">
+                    <div>
+                        <span class="font-mono font-bold text-amber-400 mr-2">${i.sku}</span>
+                        <span class="font-semibold text-white">${i.name}</span>
+                        <span class="text-zinc-400 ml-2">(${getLocationPath(i.location_id)})</span>
+                        ${i.visibility === 'INTERNAL_ONLY' ? '<span class="ml-2 text-rose-400 font-bold">[DO NOT RENT]</span>' : ''}
+                    </div>
+                    <button onclick="togglePrintQueue('${i.id}', false)" class="text-zinc-400 hover:text-white">Remove</button>
+                </div>
+            `).join('') || `<div class="text-center py-8 text-zinc-500 text-sm">No labels waiting in the Dymo queue.</div>`;
+        }
+
+        function renderMaintenance() {
+            document.getElementById('maintenanceList').innerHTML = db.issues.map(iss => `
+                <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex justify-between items-center text-xs">
+                    <label class="flex items-center gap-2.5 cursor-pointer ${iss.resolved ? 'line-through text-zinc-500' : 'text-zinc-200'}">
+                        <input type="checkbox" ${iss.resolved ? 'checked' : ''} onchange="toggleIssue('${iss.id}', ${!iss.resolved})">
+                        <span>${iss.title}</span>
+                    </label>
+                    <span class="px-2 py-0.5 rounded bg-zinc-950 border border-zinc-800 text-zinc-400">${iss.department}</span>
+                </div>
+            `).join('');
+        }
+
+        function openItemModal(id = null) {
+            document.getElementById('itemForm').reset();
+            pendingPhotoBlob = null;
+            document.getElementById('editItemId').value = id || '';
+            document.getElementById('existingPhotoUrl').value = '';
+            document.getElementById('itemPhotoPreview').classList.add('hidden');
+            document.getElementById('photoStatusText').innerText = 'Uploads to Supabase Storage bucket: item-photos';
+            document.getElementById('itemModalTitle').innerText = id ? 'Edit Item' : 'Add / Scan New Item';
+
+            if (id) {
+                const it = db.items.find(x => x.id === id);
+                if (it) {
+                    document.getElementById('itemSku').value = it.sku;
+                    document.getElementById('itemName').value = it.name;
+                    document.getElementById('itemDept').value = it.department;
+                    document.getElementById('itemLocationId').value = it.location_id || '';
+                    document.getElementById('itemNotes').value = it.notes || '';
+                    document.getElementById('itemVisibility').value = it.visibility;
+                    document.getElementById('itemQueuePrint').checked = !!it.print_queued;
+                    if (it.photo_url) {
+                        document.getElementById('existingPhotoUrl').value = it.photo_url;
+                        const prev = document.getElementById('itemPhotoPreview');
+                        prev.src = it.photo_url;
+                        prev.classList.remove('hidden');
+                    }
+                    if (it.department === 'COSTUMES' && it.specifications) {
+                        document.getElementById('cstEra').value = it.specifications.era || '';
+                        document.getElementById('cstSize').value = it.specifications.size || '';
+                        document.getElementById('cstColor').value = it.specifications.color || '';
+                        document.getElementById('cstChest').value = it.specifications.chest || '';
+                        document.getElementById('cstWaist').value = it.specifications.waist || '';
+                        document.getElementById('cstCare').value = it.specifications.care || 'Dry Clean Only';
+                    }
+                }
+            }
+            toggleCostumeFields();
+            document.getElementById('itemModal').classList.remove('hidden');
+        }
+
+        function toggleCostumeFields() {
+            document.getElementById('costumeFields').classList.toggle('hidden', document.getElementById('itemDept').value !== 'COSTUMES');
+        }
+
+        function handlePhotoSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxW = 1024;
+                    const scale = Math.min(1, maxW / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const prev = document.getElementById('itemPhotoPreview');
+                    prev.src = canvas.toDataURL('image/jpeg', 0.8);
+                    prev.classList.remove('hidden');
+                    canvas.toBlob(blob => {
+                        pendingPhotoBlob = blob;
+                        document.getElementById('photoStatusText').innerText = `Ready to upload (${Math.round(blob.size / 1024)} KB)`;
+                    }, 'image/jpeg', 0.8);
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function saveItem(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveItemBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            try {
+                const id = document.getElementById('editItemId').value;
+                const sku = document.getElementById('itemSku').value.trim().toUpperCase();
+                const dept = document.getElementById('itemDept').value;
+                let photoUrl = document.getElementById('existingPhotoUrl').value || null;
+
+                if (pendingPhotoBlob) {
+                    const filePath = `${sku}-${Date.now()}.jpg`;
+                    const { error: upErr } = await sb.storage.from('item-photos').upload(filePath, pendingPhotoBlob, { contentType: 'image/jpeg', upsert: true });
+                    if (upErr) throw upErr;
+                    const { data: pubData } = sb.storage.from('item-photos').getPublicUrl(filePath);
+                    photoUrl = pubData.publicUrl;
+                }
+
+                const payload = {
+                    sku,
+                    name: document.getElementById('itemName').value.trim(),
+                    department: dept,
+                    location_id: document.getElementById('itemLocationId').value || null,
+                    notes: document.getElementById('itemNotes').value.trim() || null,
+                    visibility: document.getElementById('itemVisibility').value,
+                    print_queued: document.getElementById('itemQueuePrint').checked,
+                    photo_url: photoUrl,
+                    specifications: dept === 'COSTUMES' ? {
+                        era: document.getElementById('cstEra').value,
+                        size: document.getElementById('cstSize').value,
+                        color: document.getElementById('cstColor').value,
+                        chest: document.getElementById('cstChest').value,
+                        waist: document.getElementById('cstWaist').value,
+                        care: document.getElementById('cstCare').value
+                    } : {}
+                };
+
+                const { error } = id
+                    ? await sb.from('items').update(payload).eq('id', id)
+                    : await sb.from('items').insert([payload]);
+                if (error) throw error;
+
+                closeModal('itemModal');
+                await loadFromSupabase();
+            } catch (err) {
+                alert('Error saving item: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save to Supabase';
+            }
+        }
+
+        function openLocationModal(parentId) {
+            document.getElementById('locParentId').value = parentId || '';
+            const banner = document.getElementById('locParentBanner');
+            if (parentId) {
+                banner.innerText = `Nesting inside: ${getLocationPath(parentId)}`;
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+            document.getElementById('locationModal').classList.remove('hidden');
+        }
+
+        async function saveLocation(e) {
+            e.preventDefault();
+            const parentId = document.getElementById('locParentId').value || null;
+            const { error } = await sb.from('locations').insert([{
+                parent_id: parentId,
+                name: document.getElementById('locName').value.trim(),
+                code: document.getElementById('locCode').value.trim().toUpperCase(),
+                location_type: document.getElementById('locType').value,
+                access_instructions: document.getElementById('locAccess').value.trim() || null
+            }]);
+            if (error) return alert('Error saving location: ' + error.message);
+            closeModal('locationModal');
+            await loadFromSupabase();
+        }
+
+        async function togglePrintQueue(id, val) {
+            await sb.from('items').update({ print_queued: val }).eq('id', id);
+            await loadFromSupabase();
+        }
+
+        async function clearPrintQueue() {
+            await sb.from('items').update({ print_queued: false }).eq('print_queued', true);
+            await loadFromSupabase();
+        }
+
+        function addToCart(id) {
+            if (!pullCart.includes(id)) pullCart.push(id);
+            renderAll();
+        }
+
+        function openCartModal() {
+            document.getElementById('cartItemsList').innerHTML = pullCart.map(id => {
+                const it = db.items.find(x => x.id === id);
+                return it ? `<div class="bg-zinc-950 p-2 rounded border border-zinc-800 flex justify-between">
+                    <span><strong class="text-amber-400 font-mono">${it.sku}</strong> — ${it.name}</span>
+                    <span class="text-zinc-500">${getLocationPath(it.location_id)}</span>
+                </div>` : '';
+            }).join('') || '<p class="text-zinc-500 text-center py-4">Your pull bucket is empty.</p>';
+            document.getElementById('cartModal').classList.remove('hidden');
+        }
+
+        function clearCart() { pullCart = []; openCartModal(); renderAll(); }
+        function checkoutCart() {
+            alert(`Pull list recorded for "${document.getElementById('cartShowName').value || 'Show Pull'}" (${pullCart.length} items).`);
+            pullCart = []; closeModal('cartModal'); renderAll();
+        }
+
+        async function addQuickIssue() {
+            const title = prompt('Describe the repair or condition issue:');
+            if (!title) return;
+            await sb.from('maintenance_logs').insert([{ title, department: 'PROPS', severity: 'MEDIUM_FUNCTIONAL', resolved: false }]);
+            await loadFromSupabase();
+        }
+
+        async function toggleIssue(id, resolved) {
+            await sb.from('maintenance_logs').update({ resolved, resolved_at: resolved ? new Date().toISOString() : null }).eq('id', id);
+            await loadFromSupabase();
+        }
+
+        function exportBackup() {
+            const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `offsquare-supabase-snapshot-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        loadFromSupabase();
+    </script>
+</body>
+</html>
