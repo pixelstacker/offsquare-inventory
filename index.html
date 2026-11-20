@@ -8,62 +8,33 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
-    :root {
-      --bg-app: #0f172a;
-      --bg-card: #1e293b;
-      --bg-elevated: #334155;
-      --accent: #f59e0b;
-      --accent-hover: #d97706;
-    }
     body {
-      background-color: var(--bg-app);
+      background-color: #0f172a;
       color: #f8fafc;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     @media print {
-      body {
-        background: #ffffff !important;
-        color: #000000 !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      #print-area {
-        display: block !important;
-        position: static !important;
-        width: 100% !important;
-      }
-      .thermal-label {
-        page-break-inside: avoid;
-        break-inside: avoid;
-        border: 1px solid #000 !important;
-        margin-bottom: 8px;
-      }
-      .pull-sheet-row {
-        page-break-inside: avoid;
-        break-inside: avoid;
-      }
+      body { background: #ffffff !important; color: #000000 !important; }
+      .no-print { display: none !important; }
+      #print-area { display: block !important; position: static !important; width: 100% !important; }
+      .thermal-label, .pull-sheet-row { page-break-inside: avoid; break-inside: avoid; }
+      .thermal-label { border: 1px solid #000 !important; margin-bottom: 8px; }
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- TOP NAVIGATION BAR -->
+  <!-- TOP HEADER -->
   <header class="no-print bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-lg shadow">
-          OS
-        </div>
+        <div class="w-9 h-9 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-lg shadow">OS</div>
         <div>
-          <h1 class="font-bold text-base sm:text-lg tracking-tight text-white leading-tight">
-            Off Square Theatre Co.
-          </h1>
-          <p class="text-xs text-slate-400">Production Inventory, Lists &amp; Shop Manager</p>
+          <h1 class="font-bold text-base sm:text-lg tracking-tight text-white leading-tight">Off Square Theatre Co.</h1>
+          <p class="text-xs text-slate-400">Production Inventory, Space Maps &amp; Shop Manager</p>
         </div>
       </div>
 
-      <!-- Role & Connection Controls -->
       <div class="flex flex-wrap items-center gap-2">
         <div class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700">
           <span class="text-xs text-slate-400">User:</span>
@@ -78,16 +49,12 @@
             <option value="GUEST" class="bg-slate-900">Guest / Borrower-Renter</option>
           </select>
         </div>
-        <button onclick="openSettingsModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
-          DB Config
-        </button>
-        <button onclick="openItemModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg shadow">
-          + New Item
-        </button>
+        <button onclick="openSettingsModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">DB Config</button>
+        <button onclick="openItemModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg shadow">+ New Catalog Item</button>
       </div>
     </div>
 
-    <!-- PRIMARY TABS -->
+    <!-- PRIMARY NAVIGATION TABS -->
     <nav class="max-w-7xl mx-auto px-4 flex overflow-x-auto gap-1 border-t border-slate-800/80 pt-1">
       <button onclick="switchTab('catalog')" id="tab-catalog" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-amber-500 text-amber-400 whitespace-nowrap">
         Catalog (<span id="count-catalog">0</span>)
@@ -102,7 +69,7 @@
         Label Print Queue (<span id="count-print">0</span>)
       </button>
       <button onclick="switchTab('maps')" id="tab-maps" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
-        Space Maps
+        Space Maps &amp; Locations
       </button>
       <button onclick="switchTab('repairs')" id="tab-repairs" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
         Repairs (<span id="count-repairs">0</span>)
@@ -122,10 +89,10 @@
   <!-- MAIN WORKSPACE -->
   <main class="no-print flex-1 max-w-7xl w-full mx-auto px-4 py-6">
 
-    <!-- ==================== VIEW 1: CATALOG ==================== -->
+    <!-- ==================== 1. CATALOG (READ-ONLY CARDS + MINI-MAPS) ==================== -->
     <section id="view-catalog" class="view-section space-y-4">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center gap-3">
-        <input id="search-catalog" oninput="renderCatalog()" type="text" placeholder="Search title, 6-digit SKU, color, show, or notes..."
+        <input id="search-catalog" oninput="renderCatalog()" type="text" placeholder="Search title, 6-digit SKU, color, show, or description..."
           class="flex-1 min-w-[220px] bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-500" />
         <select id="filter-dept" onchange="renderCatalog()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
           <option value="ALL">All Asset Types</option>
@@ -149,23 +116,23 @@
         </select>
       </div>
 
-      <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+      <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     </section>
 
-    <!-- ==================== VIEW 2: SUPPLIES (CONSUMABLES) ==================== -->
+    <!-- ==================== 2. SUPPLIES (SEPARATE TAB & SEPARATE ADD MODAL) ==================== -->
     <section id="view-supplies" class="view-section hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div>
           <h2 class="text-lg font-bold text-white">Shop Supplies &amp; Consumables</h2>
-          <p class="text-xs text-slate-400">Paint, screws, fabric, gaff tape, and shop consumables — tracked separately from show assets.</p>
+          <p class="text-xs text-slate-400">Dedicated tracker for paint, screws, fabric, gaff tape, and shop hardware — kept separate from production assets.</p>
         </div>
         <div class="flex items-center gap-2">
           <label class="flex items-center gap-2 text-xs bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 cursor-pointer">
             <input id="filter-low-stock" type="checkbox" onchange="renderSupplies()" class="accent-amber-500" />
             <span>Low Stock Only</span>
           </label>
-          <button onclick="openItemModal(null, true)" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">
-            + Add Supply
+          <button onclick="openSupplyModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg shadow">
+            + Add Supply Item
           </button>
         </div>
       </div>
@@ -175,10 +142,10 @@
           <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
             <tr>
               <th class="px-4 py-3">Supply / SKU</th>
-              <th class="px-4 py-3">Category</th>
-              <th class="px-4 py-3">Location</th>
-              <th class="px-4 py-3">Stock Qty</th>
-              <th class="px-4 py-3">Low Threshold</th>
+              <th class="px-4 py-3">Supply Type</th>
+              <th class="px-4 py-3">Shelf / Location</th>
+              <th class="px-4 py-3">In Stock</th>
+              <th class="px-4 py-3">Low Alert</th>
               <th class="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -187,12 +154,12 @@
       </div>
     </section>
 
-    <!-- ==================== VIEW 3: BORROW / RENT LISTS & TECH PULL LISTS ==================== -->
+    <!-- ==================== 3. BORROW / RENT LISTS & TECH PULL LISTS ==================== -->
     <section id="view-lists" class="view-section hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div>
           <h2 class="text-lg font-bold text-white">Borrow / Rent Lists &amp; Tech Pull Lists</h2>
-          <p class="text-xs text-slate-400">Directors, designers &amp; guests build named Borrow or Rent lists; tech crew pulls digitally or prints QR pull sheets.</p>
+          <p class="text-xs text-slate-400">Named lists tagged Borrow or Rent, with digital check-off mode and printable QR pull sheets.</p>
         </div>
         <button onclick="openNewListModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">
           + New Borrow / Rent List
@@ -207,12 +174,12 @@
       </div>
     </section>
 
-    <!-- ==================== VIEW 4: LABEL PRINT QUEUE ==================== -->
+    <!-- ==================== 4. LABEL PRINT QUEUE ==================== -->
     <section id="view-print" class="view-section hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div>
           <h2 class="text-lg font-bold text-white">Label Printer Queue</h2>
-          <p class="text-xs text-slate-400">Flats, bins, and large objects default to 2 copies. Printed labels display general Site &amp; Place (no rack/shelf/bin) plus QR &amp; 6-digit SKU.</p>
+          <p class="text-xs text-slate-400">Flats, bins, and large objects default to 2 copies. Labels show general Site &amp; Place (no rack/shelf/bin) plus QR &amp; 6-digit SKU.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="printQueuedLabels()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg shadow">
@@ -227,58 +194,100 @@
       <div id="print-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
-    <!-- ==================== VIEW 5: SPACE MAPS ==================== -->
+    <!-- ==================== 5. INTERACTIVE VECTOR SPACE MAPS & LOCATIONS ==================== -->
     <section id="view-maps" class="view-section hidden space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Facility &amp; Storage Space Maps</h2>
-          <p class="text-xs text-slate-400">Labeled rooms, nested/overlapping zones (e.g. Paint Room inside Warehouse), and rack dots.</p>
+          <h2 class="text-lg font-bold text-white">Vector Space Maps &amp; Location Hierarchy</h2>
+          <p class="text-xs text-slate-400">Select a Building &amp; Floor, drag on the vector canvas to draw rooms/sub-rooms, or click to drop shelf location dots.</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="setMapFloor(1)" id="btn-floor-1" class="text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg">Floor 1</button>
-          <button onclick="setMapFloor(2)" id="btn-floor-2" class="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg">Floor 2 / Loft</button>
-          <button onclick="openLocationModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-700">+ Add Room / Rack Dot</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="map-building-select" onchange="onMapBuildingChange()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"></select>
+          <button onclick="addNewBuildingPrompt()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1.5 rounded-lg border border-slate-700">+ Building</button>
+          <select id="map-floor-select" onchange="renderSpaceMap()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+            <option value="1">Floor 1</option>
+            <option value="2">Floor 2 / Loft</option>
+            <option value="0">Basement / Lower</option>
+          </select>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <div id="space-map-canvas" class="relative w-full h-[460px] bg-slate-950 border border-slate-800 rounded-lg overflow-hidden select-none"></div>
+      <!-- Vector Drawing Mode Toolbar -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="setMapTool('SELECT')" id="tool-SELECT" class="map-tool-btn text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg">
+            Select / Inspect
+          </button>
+          <button onclick="setMapTool('DRAW_ROOM')" id="tool-DRAW_ROOM" class="map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
+            + Draw Room (Drag)
+          </button>
+          <button onclick="setMapTool('DRAW_SUBROOM')" id="tool-DRAW_SUBROOM" class="map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
+            + Draw Sub-Room / Overlap (Drag)
+          </button>
+          <button onclick="setMapTool('DROP_DOT')" id="tool-DROP_DOT" class="map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
+            + Drop Shelf / Rack Dot (Click)
+          </button>
         </div>
-        <div id="location-inspector" class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-          <h3 class="font-bold text-sm text-amber-400 uppercase tracking-wider">Space &amp; Rack Inspector</h3>
-          <p class="text-xs text-slate-400">Click any room box or rack dot on the map to inspect stored items.</p>
+        <span id="map-tool-hint" class="text-xs text-slate-400">Click any room or shelf dot to inspect or edit.</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Interactive Vector SVG Floorplan -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-3">
+          <svg id="vector-floorplan" viewBox="0 0 1000 620" class="w-full h-[460px] bg-slate-950 border border-slate-800 rounded-lg select-none cursor-crosshair">
+            <defs>
+              <pattern id="floor-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="1" />
+              </pattern>
+            </defs>
+            <rect width="1000" height="620" fill="url(#floor-grid)" />
+            <g id="svg-rooms-layer"></g>
+            <g id="svg-dots-layer"></g>
+            <rect id="svg-drag-preview" x="0" y="0" width="0" height="0" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 4" class="hidden pointer-events-none" />
+          </svg>
+        </div>
+
+        <!-- Location & Sub-Location Tree + Inspector -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4 max-h-[490px] overflow-y-auto">
+          <div id="location-inspector" class="space-y-2 border-b border-slate-800 pb-3">
+            <h3 class="font-bold text-xs text-amber-400 uppercase tracking-wider">Location &amp; Sub-Location Inspector</h3>
+            <p class="text-xs text-slate-400">Draw a room, drop a shelf dot, or select any location below to manage rooms, sub-locations, and shelves.</p>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-xs text-slate-300 uppercase">All Locations on This Building/Floor</h4>
+              <button onclick="openLocationModal()" class="text-[11px] text-amber-400 hover:underline">+ Quick Add Text Location</button>
+            </div>
+            <div id="locations-tree-list" class="space-y-1.5"></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== VIEW 6: REPAIRS (LINKED, PRIORITIZED, GROUPED BY TYPE) ==================== -->
+    <!-- ==================== 6. REPAIRS ==================== -->
     <section id="view-repairs" class="view-section hidden space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div>
           <h2 class="text-lg font-bold text-white">Repairs &amp; Maintenance (By Item Type)</h2>
-          <p class="text-xs text-slate-400">Linked to catalog items, sorted by priority, and grouped by item department/type.</p>
+          <p class="text-xs text-slate-400">Linked to catalog items, prioritized, and grouped by item department/type.</p>
         </div>
         <div class="flex items-center gap-2">
           <label class="flex items-center gap-2 text-xs bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 cursor-pointer">
             <input id="hide-resolved-repairs" type="checkbox" checked onchange="renderRepairs()" class="accent-amber-500" />
             <span>Hide Resolved</span>
           </label>
-          <button onclick="openRepairModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">
-            + Log Item Repair
-          </button>
+          <button onclick="openRepairModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">+ Log Item Repair</button>
         </div>
       </div>
-
       <div id="repairs-grouped-container" class="space-y-6"></div>
     </section>
 
-    <!-- ==================== VIEW 7: SCAN & AUDIT ==================== -->
+    <!-- ==================== 7. SCAN & AUDIT ==================== -->
     <section id="view-audit" class="view-section hidden space-y-4">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
         <div>
           <h2 class="text-lg font-bold text-white">Quick Scan-to-Move &amp; Room Spot-Check Audit</h2>
-          <p class="text-xs text-slate-400">Type or scan a 6-digit SKU (or QR payload) to reassign location immediately or verify rack contents.</p>
+          <p class="text-xs text-slate-400">Scan or enter a 6-digit SKU to reassign location immediately or verify rack contents.</p>
         </div>
         <div class="flex flex-wrap gap-3">
           <input id="scan-sku-input" onkeydown="if(event.key==='Enter') handleQuickScan()" type="text" placeholder="Scan or enter 6-digit SKU..."
@@ -286,15 +295,13 @@
           <select id="scan-target-location" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
             <option value="">Inspect / Audit Only (No Move)</option>
           </select>
-          <button onclick="handleQuickScan()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">
-            Process Scan
-          </button>
+          <button onclick="handleQuickScan()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">Process Scan</button>
         </div>
         <div id="scan-audit-log" class="space-y-2 pt-2"></div>
       </div>
     </section>
 
-    <!-- ==================== VIEW 8: 30-DAY TRASH BIN ==================== -->
+    <!-- ==================== 8. 30-DAY TRASH BIN ==================== -->
     <section id="view-trash" class="view-section hidden space-y-4">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -306,7 +313,7 @@
       <div id="trash-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
-    <!-- ==================== VIEW 9: ADMIN HUB ==================== -->
+    <!-- ==================== 9. ADMIN HUB ==================== -->
     <section id="view-admin" class="view-section hidden space-y-6">
       <div id="admin-guard-msg" class="hidden bg-red-950/60 border border-red-800 text-red-200 rounded-xl p-4 text-sm">
         Admin role required to manage item types, custom fields, and catalog exports.
@@ -319,12 +326,8 @@
             <p class="text-xs text-slate-400">Download complete JSON snapshot or CSV spreadsheet for offline backup and migration.</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="exportCatalogJSON()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg">
-              Download Full JSON
-            </button>
-            <button onclick="exportCatalogCSV()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg border border-slate-700">
-              Export Catalog CSV
-            </button>
+            <button onclick="exportCatalogJSON()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg">Download Full JSON</button>
+            <button onclick="exportCatalogCSV()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg border border-slate-700">Export Catalog CSV</button>
           </div>
         </div>
 
@@ -343,9 +346,7 @@
               <input id="new-type-consumable" type="checkbox" class="accent-amber-500" />
               <span>Consumable (Supplies)</span>
             </label>
-            <button onclick="addCustomItemType()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">
-              + Add Type
-            </button>
+            <button onclick="addCustomItemType()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">+ Add Type</button>
           </div>
           <div id="admin-types-list" class="flex flex-wrap gap-2 pt-2"></div>
         </div>
@@ -358,11 +359,8 @@
             <select id="custom-field-type" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
               <option value="text">Text</option>
               <option value="number">Number</option>
-              <option value="checkbox">Checkbox</option>
             </select>
-            <button onclick="addCustomFieldDef()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">
-              + Add Spec Field
-            </button>
+            <button onclick="addCustomFieldDef()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">+ Add Spec Field</button>
           </div>
           <div id="admin-custom-fields-list" class="space-y-1 text-xs text-slate-300"></div>
         </div>
@@ -372,25 +370,79 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <input id="new-show-title" type="text" placeholder="Show Title (e.g. Something Rotten!)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
             <input id="new-show-season" type="text" placeholder="Season / Year (e.g. 2026)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
-            <button onclick="addShow()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">
-              + Add Production
-            </button>
+            <button onclick="addShow()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">+ Add Production</button>
           </div>
           <div id="admin-shows-list" class="flex flex-wrap gap-2"></div>
         </div>
       </div>
     </section>
-
   </main>
 
   <!-- DEDICATED PRINT OUTPUT CONTAINER -->
   <div id="print-area" class="hidden p-4 bg-white text-black"></div>
 
-  <!-- ITEM ADD / EDIT MODAL -->
+  <!-- ==================== READ-ONLY ITEM DETAIL MODAL (BROWSE WITHOUT EDITING) ==================== -->
+  <div id="item-detail-modal" class="no-print hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full p-6 space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-800 pb-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="detail-sku" class="font-mono text-xs font-bold bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded border border-amber-500/40"></span>
+            <span id="detail-dept" class="text-xs font-semibold text-slate-400 uppercase"></span>
+          </div>
+          <h3 id="detail-title" class="text-xl font-bold text-white mt-1"></h3>
+        </div>
+        <button onclick="closeModal('item-detail-modal')" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Left: Photo Gallery + Description + Tags -->
+        <div class="space-y-4">
+          <div id="detail-main-photo" class="h-56 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden"></div>
+          <div id="detail-thumbs" class="flex flex-wrap gap-2"></div>
+          <div>
+            <h4 class="text-xs font-bold uppercase text-slate-400 mb-1">Description &amp; Notes</h4>
+            <p id="detail-description" class="text-sm text-slate-200 leading-relaxed"></p>
+          </div>
+          <div id="detail-tags" class="flex flex-wrap gap-1.5"></div>
+          <div id="detail-specs" class="text-xs text-slate-300 space-y-1 bg-slate-950/60 p-3 rounded-xl border border-slate-800"></div>
+        </div>
+
+        <!-- Right: Vector Space Map Pinpointing Room & Shelf Dot + Quick Actions -->
+        <div class="space-y-4">
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase text-amber-400">Storage Space Map</span>
+              <span id="detail-location-path" class="text-[11px] text-slate-300"></span>
+            </div>
+            <div id="detail-mini-map" class="w-full h-52 bg-slate-900 rounded-lg overflow-hidden border border-slate-800"></div>
+          </div>
+
+          <!-- Action Buttons: Add to List, Quick Check-Out, Edit -->
+          <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-2.5">
+            <button id="detail-btn-add-list" class="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 px-4 rounded-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              Add to Active Borrow / Rent List
+            </button>
+            <button id="detail-btn-checkout" class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 px-4 rounded-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Quick Check-Out (Mark Pulled / Checked Out)
+            </button>
+            <button id="detail-btn-edit" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs py-2.5 px-4 rounded-lg border border-slate-600">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              Edit Item Details
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CATALOG ITEM ADD / EDIT MODAL (DELETE AT BOTTOM) ==================== -->
   <div id="item-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 id="item-modal-title" class="text-lg font-bold text-white">Add / Edit Inventory Item</h3>
+        <h3 id="item-modal-title" class="text-lg font-bold text-white">Add / Edit Catalog Asset</h3>
         <button onclick="closeModal('item-modal')" class="text-slate-400 hover:text-white text-xl">&times;</button>
       </div>
 
@@ -423,7 +475,10 @@
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Location (Site / Place / Rack)</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs text-slate-400">Location (Building / Room / Shelf Dot)</label>
+            <button type="button" onclick="openLocationModal()" class="text-[11px] text-amber-400 hover:underline">+ Add Location</button>
+          </div>
           <select id="item-location" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
         </div>
 
@@ -448,11 +503,8 @@
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Quantity &amp; Low-Stock Threshold (Supplies)</label>
-          <div class="flex gap-2">
-            <input id="item-qty" type="number" min="0" value="1" placeholder="Qty" class="w-1/2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
-            <input id="item-low-threshold" type="number" min="0" placeholder="Low Alert" class="w-1/2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
-          </div>
+          <label class="block text-xs text-slate-400 mb-1">Quantity</label>
+          <input id="item-qty" type="number" min="1" value="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
         </div>
 
         <div>
@@ -467,28 +519,18 @@
             <input id="item-value" type="number" step="0.01" placeholder="Value $" class="w-1/2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
           </div>
         </div>
-
-        <div class="sm:col-span-2">
-          <label class="block text-xs text-slate-400 mb-1">Bundle Parent Item (Optional — for Multi-Part Sets)</label>
-          <select id="item-parent-bundle" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
-            <option value="">Standalone Item (Not part of a parent bundle)</option>
-          </select>
-        </div>
       </div>
 
-      <!-- Shows Used In (Excluded for HARDWARE_TOOLS) -->
       <div id="shows-used-section">
         <label class="block text-xs text-slate-400 mb-1">Shows Used In</label>
         <div id="item-shows-checkboxes" class="flex flex-wrap gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-xs"></div>
       </div>
 
-      <!-- Color Palette Picker (First color = Dominant) -->
       <div>
         <label class="block text-xs text-slate-400 mb-1">Colors (First selected color is Dominant)</label>
         <div id="color-picker-row" class="flex flex-wrap gap-2"></div>
       </div>
 
-      <!-- Safety / Rigging / Care Flags -->
       <div>
         <label class="block text-xs text-slate-400 mb-1">Safety, Rigging &amp; Care Flags</label>
         <div class="flex flex-wrap gap-2 text-xs">
@@ -499,16 +541,10 @@
         </div>
       </div>
 
-      <!-- Dynamic Type Specifications -->
       <div id="dynamic-specs-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800"></div>
 
-      <!-- Label Printer & Large Object Controls -->
       <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-4 text-xs">
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input id="item-is-consumable" type="checkbox" class="accent-amber-500" />
-            <span>Consumable (Route to Supplies)</span>
-          </label>
           <label class="flex items-center gap-1.5 cursor-pointer">
             <input id="item-is-large" type="checkbox" onchange="updateDefaultCopiesFromFlags()" class="accent-amber-500" />
             <span>Flat / Bin / Large Object (2 Labels)</span>
@@ -524,21 +560,116 @@
         </div>
       </div>
 
-      <!-- Multi-Photo Upload -->
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Photos (Compressed upload to Supabase `item-photos`; click a photo to set as Cover)</label>
+        <label class="block text-xs text-slate-400 mb-1">Photos (Click thumbnail to set as Cover Photo)</label>
         <input id="item-photo-files" type="file" accept="image/*" multiple class="text-xs text-slate-300" />
         <div id="item-existing-photos" class="flex flex-wrap gap-2 mt-2"></div>
       </div>
 
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Notes &amp; Condition</label>
+        <label class="block text-xs text-slate-400 mb-1">Description &amp; Notes</label>
         <textarea id="item-notes" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
       </div>
 
-      <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-        <button onclick="closeModal('item-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
-        <button id="btn-save-item" onclick="saveItem()" class="px-5 py-2 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg">Save Item</button>
+      <!-- Footer with Delete Only inside Edit Modal at Bottom -->
+      <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-800">
+        <button id="btn-delete-in-edit" type="button" onclick="deleteFromEditModal()" class="hidden flex items-center gap-1.5 px-3.5 py-2 text-xs bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          Move to 30-Day Trash
+        </button>
+        <div class="flex gap-2 ml-auto">
+          <button onclick="closeModal('item-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
+          <button id="btn-save-item" onclick="saveItem()" class="px-5 py-2 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg">Save Catalog Item</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SEPARATE SUPPLY ITEM ADD / EDIT MODAL ==================== -->
+  <div id="supply-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="supply-modal-title" class="text-lg font-bold text-white">Add / Edit Shop Supply</h3>
+        <button onclick="closeModal('supply-modal')" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      </div>
+      <input type="hidden" id="edit-supply-id" />
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Supply Name * (e.g. Black Scenic Paint 1 Gal, 1.5" Drywall Screws)</label>
+          <input id="supply-title" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Supply Category *</label>
+          <select id="supply-subtype" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Current Quantity *</label>
+            <input id="supply-qty" type="number" min="0" value="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Low-Stock Alert At</label>
+            <input id="supply-threshold" type="number" min="0" placeholder="e.g. 2" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Shelf / Bin Location</label>
+          <select id="supply-location" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Notes / Brand / Color Code</label>
+          <input id="supply-notes" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+        </div>
+      </div>
+      <div class="flex items-center justify-between pt-3 border-t border-slate-800">
+        <button id="btn-delete-supply" type="button" onclick="deleteSupplyFromModal()" class="hidden px-3 py-2 text-xs bg-red-950 text-red-200 border border-red-800 rounded-lg">Delete Supply</button>
+        <div class="flex gap-2 ml-auto">
+          <button onclick="closeModal('supply-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
+          <button onclick="saveSupplyItem()" class="px-5 py-2 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg">Save Supply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LOCATION & SUB-LOCATION MODAL ==================== -->
+  <div id="location-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <h3 class="font-bold text-white">Add / Edit Location or Sub-Location</h3>
+        <button onclick="closeModal('location-modal')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <input type="hidden" id="edit-loc-id" />
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Building / Site *</label>
+          <input id="loc-site" type="text" value="Main Bldg" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        </div>
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">Floor *</label>
+          <select id="loc-floor" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            <option value="1">Floor 1</option>
+            <option value="2">Floor 2 / Loft</option>
+            <option value="0">Basement / Lower</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">Parent Room / Location (Optional — makes this a Sub-Location)</label>
+        <select id="loc-parent" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+          <option value="">None (Top-Level Room / Zone)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">Room / Zone Label *</label>
+        <input id="loc-place" type="text" placeholder="e.g. Paint Room, Costume Loft, Props Cage" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+      </div>
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">Sub-Location / Rack / Shelf / Bin Name (Optional)</label>
+        <input id="loc-rack" type="text" placeholder="e.g. Rack B, Shelf 3, Bin 12" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal('location-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
+        <button onclick="saveLocation()" class="px-4 py-2 text-xs bg-amber-500 text-slate-950 font-bold rounded-lg">Save Location</button>
       </div>
     </div>
   </div>
@@ -602,43 +733,6 @@
     </div>
   </div>
 
-  <!-- LOCATION / SPACE MAP MODAL -->
-  <div id="location-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-3">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-white">Add Room / Overlapping Zone / Rack Dot</h3>
-        <button onclick="closeModal('location-modal')" class="text-slate-400 hover:text-white">&times;</button>
-      </div>
-      <input id="loc-site" type="text" value="Main Bldg" placeholder="Site (e.g. Main Bldg)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
-      <input id="loc-place" type="text" placeholder="Place / Room Label (e.g. Paint Room)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
-      <input id="loc-rack" type="text" placeholder="Granular Rack / Shelf / Bin (Digital Pull Only)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
-      <div class="grid grid-cols-2 gap-2 text-xs">
-        <select id="loc-floor" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white">
-          <option value="1">Floor 1</option>
-          <option value="2">Floor 2 / Loft</option>
-        </select>
-        <label class="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
-          <input id="loc-subroom" type="checkbox" class="accent-amber-500" />
-          <span>Sub-Room (Overlap Top)</span>
-        </label>
-      </div>
-      <div class="grid grid-cols-4 gap-2 text-xs">
-        <input id="loc-x" type="number" value="10" placeholder="X %" class="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white" />
-        <input id="loc-y" type="number" value="10" placeholder="Y %" class="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white" />
-        <input id="loc-w" type="number" value="35" placeholder="W %" class="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white" />
-        <input id="loc-h" type="number" value="35" placeholder="H %" class="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white" />
-      </div>
-      <div class="grid grid-cols-2 gap-2 text-xs">
-        <input id="loc-dot-x" type="number" placeholder="Rack Dot X % (optional)" class="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white" />
-        <input id="loc-dot-y" type="number" placeholder="Rack Dot Y % (optional)" class="bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-white" />
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModal('location-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
-        <button onclick="saveLocation()" class="px-4 py-2 text-xs bg-amber-500 text-slate-950 font-bold rounded-lg">Save Space</button>
-      </div>
-    </div>
-  </div>
-
   <!-- DB SETTINGS MODAL -->
   <div id="settings-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-3">
@@ -663,8 +757,10 @@
     let currentRole = localStorage.getItem('ost_role') || 'ADMIN';
     let currentUserName = localStorage.getItem('ost_user') || 'Shop User';
     let activeTab = 'catalog';
-    let activeFloor = 1;
     let activeListId = null;
+    let mapTool = 'SELECT';
+    let isDrawingMap = false;
+    let dragStartSvg = null;
 
     let state = {
       items: [],
@@ -703,6 +799,7 @@
       document.getElementById('user-name-input').value = currentUserName;
       initSupabase();
       buildColorPicker();
+      setupVectorCanvasEvents();
 
       const params = new URLSearchParams(window.location.search);
       const urlSku = params.get('sku');
@@ -723,9 +820,7 @@
       const key = localStorage.getItem('ost_sb_key') || DEFAULT_SUPABASE_ANON_KEY;
       document.getElementById('cfg-url').value = url;
       document.getElementById('cfg-key').value = key;
-      if (url && key && window.supabase) {
-        sb = window.supabase.createClient(url, key);
-      }
+      if (url && key && window.supabase) sb = window.supabase.createClient(url, key);
     }
 
     function saveDbConfig() {
@@ -823,7 +918,7 @@
     }
 
     // =========================================================================
-    // SKU GENERATOR (6-DIGIT RANDOM + PROFANITY/LEETSPEAK FILTER)
+    // SKU & LOCATION HELPERS
     // =========================================================================
     function isCleanSku(sku) {
       const leetMap = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b' };
@@ -844,25 +939,74 @@
       document.getElementById('item-sku').value = generateCleanSku();
     }
 
-    // =========================================================================
-    // LOCATION FORMATTING (GENERAL SITE/PLACE FOR LABELS VS FULL PATH FOR PULLS)
-    // =========================================================================
     function getGeneralLocationLabel(locationId) {
       const loc = state.locations.find(l => l.id === locationId);
       if (!loc) return 'UNASSIGNED LOCATION';
       const place = loc.place_name || loc.room_label || loc.name || '';
-      const site = loc.site_name || '';
+      const site = loc.building_name || loc.site_name || '';
       return site && place ? `${place.toUpperCase()} (${site.toUpperCase()})` : (place || site).toUpperCase();
     }
 
     function getFullLocationPath(locationId) {
       const loc = state.locations.find(l => l.id === locationId);
       if (!loc) return 'Unassigned';
-      return [loc.site_name, loc.place_name || loc.room_label, loc.name].filter(Boolean).join(' › ');
+      const parent = loc.parent_location_id ? state.locations.find(p => p.id === loc.parent_location_id) : null;
+      return [
+        loc.building_name || loc.site_name,
+        `Floor ${loc.floor_number ?? loc.floor_level ?? 1}`,
+        parent ? (parent.place_name || parent.name) : null,
+        loc.place_name || loc.room_label,
+        loc.name !== (loc.place_name || loc.room_label) ? loc.name : null
+      ].filter(Boolean).join(' › ');
     }
 
     // =========================================================================
-    // VIEW 1: CATALOG
+    // MINI VECTOR MAP SVG RENDERER (USED ON CATALOG CARDS & ITEM DETAIL MODAL)
+    // =========================================================================
+    function buildVectorMiniMapSvg(locationId, compact = true) {
+      const targetLoc = state.locations.find(l => l.id === locationId);
+      if (!targetLoc) {
+        return `<div class="h-full flex items-center justify-center text-[11px] text-slate-500">No map location assigned</div>`;
+      }
+      const bldg = targetLoc.building_name || targetLoc.site_name || 'Main Bldg';
+      const floor = targetLoc.floor_number ?? targetLoc.floor_level ?? 1;
+      const parentLoc = targetLoc.parent_location_id ? state.locations.find(p => p.id === targetLoc.parent_location_id) : null;
+
+      const floorRooms = state.locations
+        .filter(l => (l.building_name || l.site_name || 'Main Bldg') === bldg && (l.floor_number ?? l.floor_level ?? 1) === floor && (l.svg_w || l.map_w))
+        .sort((a, b) => ((b.svg_w || b.map_w * 10) * (b.svg_h || b.map_h * 6)) - ((a.svg_w || a.map_w * 10) * (a.svg_h || a.map_h * 6)));
+
+      const dotX = targetLoc.dot_x != null ? (targetLoc.dot_x <= 100 ? targetLoc.dot_x * 10 : targetLoc.dot_x) : null;
+      const dotY = targetLoc.dot_y != null ? (targetLoc.dot_y <= 100 ? targetLoc.dot_y * 6.2 : targetLoc.dot_y) : null;
+
+      const roomsSvg = floorRooms.map(r => {
+        const rx = r.svg_x != null ? r.svg_x : (r.map_x || 0) * 10;
+        const ry = r.svg_y != null ? r.svg_y : (r.map_y || 0) * 6.2;
+        const rw = r.svg_w != null ? r.svg_w : (r.map_w || 20) * 10;
+        const rh = r.svg_h != null ? r.svg_h : (r.map_h || 20) * 6.2;
+        const isHighlighted = r.id === targetLoc.id || (parentLoc && r.id === parentLoc.id);
+        return `
+          <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="8"
+            fill="${isHighlighted ? 'rgba(245, 158, 11, 0.28)' : 'rgba(30, 41, 59, 0.75)'}"
+            stroke="${isHighlighted ? '#f59e0b' : '#475569'}" stroke-width="${isHighlighted ? '4' : '2'}" />
+          ${!compact ? `<text x="${rx + 12}" y="${ry + 24}" fill="${isHighlighted ? '#fbbf24' : '#94a3b8'}" font-size="18" font-weight="bold">${r.place_name || r.name}</text>` : ''}
+        `;
+      }).join('');
+
+      const dotSvg = (dotX != null && dotY != null)
+        ? `<circle cx="${dotX}" cy="${dotY}" r="${compact ? 18 : 14}" fill="#ef4444" stroke="#ffffff" stroke-width="4" />`
+        : '';
+
+      return `
+        <svg viewBox="0 0 1000 620" class="w-full h-full bg-slate-950">
+          ${roomsSvg}
+          ${dotSvg}
+        </svg>
+      `;
+    }
+
+    // =========================================================================
+    // 1. CATALOG VIEW (READ-ONLY CARDS + MINI-MAP + LARGE ACTION ICONS)
     // =========================================================================
     function renderCatalog() {
       const q = (document.getElementById('search-catalog').value || '').toLowerCase();
@@ -885,7 +1029,7 @@
             .filter(is => is.item_id === item.id)
             .map(is => (state.shows.find(s => s.id === is.show_id) || {}).title || '')
             .join(' ');
-          const hay = `${item.title} ${item.sku} ${item.department} ${(item.colors || []).join(' ')} ${item.notes || ''} ${itemShowTitles}`.toLowerCase();
+          const hay = `${item.title} ${item.sku} ${item.department} ${(item.colors || []).join(' ')} ${item.description || ''} ${item.notes || ''} ${itemShowTitles}`.toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
@@ -900,6 +1044,7 @@
       grid.innerHTML = items.map(item => {
         const cover = (item.photo_urls && item.photo_urls[0]) || item.photo_url || '';
         const openRepair = state.repairs.find(r => r.item_id === item.id && r.status !== 'RESOLVED');
+        const desc = item.description || item.notes || '';
         const showBadges = state.itemShows
           .filter(is => is.item_id === item.id)
           .map(is => state.shows.find(s => s.id === is.show_id))
@@ -914,80 +1059,144 @@
 
         return `
           <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition">
-            <div>
-              <div class="relative h-40 bg-slate-950 flex items-center justify-center overflow-hidden">
+            <!-- Clickable Read-Only Body -->
+            <div onclick="openItemDetailModal('${item.id}')" class="cursor-pointer">
+              <div class="relative h-44 bg-slate-950 flex items-center justify-center overflow-hidden">
                 ${cover ? `<img src="${cover}" class="w-full h-full object-cover" />` : `<span class="text-xs text-slate-600 font-mono">NO PHOTO • ${item.sku || ''}</span>`}
                 <span class="absolute top-2 left-2 bg-slate-950/85 text-amber-400 font-mono text-xs px-2 py-0.5 rounded border border-slate-700">
                   ${item.sku || '------'}
                 </span>
-                <button onclick="togglePrintQueue('${item.id}')" title="Toggle Label Printer Queue (${item.print_copies || 1} copies)"
-                  class="absolute top-2 right-2 p-1.5 rounded-lg border ${item.print_queued ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-950/80 text-slate-300 border-slate-700 hover:text-white'}">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                  </svg>
-                </button>
                 ${openRepair ? `<span class="absolute bottom-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Needs Repair (${openRepair.priority})</span>` : ''}
               </div>
 
-              <div class="p-3.5 space-y-2">
+              <div class="p-4 space-y-2.5">
                 <div class="flex items-start justify-between gap-2">
-                  <h3 class="font-bold text-sm text-white leading-snug">${item.title}</h3>
-                  <div class="flex items-center gap-1 shrink-0 pt-0.5">${colorsHtml}</div>
+                  <h3 class="font-bold text-base text-white leading-snug">${item.title}</h3>
+                  <div class="flex items-center gap-1 shrink-0 pt-1">${colorsHtml}</div>
                 </div>
-                <p class="text-[11px] text-slate-400">${item.department || 'UNASSIGNED'} • ${getGeneralLocationLabel(item.location_id)}</p>
+
+                ${desc ? `<p class="text-xs text-slate-300 line-clamp-2">${desc}</p>` : ''}
+
                 <div class="flex flex-wrap gap-1">
-                  <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${item.borrow_rent_mode || 'INTERNAL_ONLY'}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${item.department || 'UNASSIGNED'}</span>
                   <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">${item.readiness_status || 'READY_FOR_STAGE'}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-sky-300 border border-slate-700">${item.borrow_rent_mode || 'INTERNAL_ONLY'}</span>
                   ${showBadges}
                   ${(item.safety_flags || []).map(f => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800">${f}</span>`).join('')}
+                </div>
+
+                <!-- Mini Vector Space Map Preview on Card -->
+                <div class="flex items-center gap-2.5 bg-slate-950/80 border border-slate-800 rounded-lg p-2">
+                  <div class="w-16 h-11 rounded overflow-hidden border border-slate-800 shrink-0">
+                    ${buildVectorMiniMapSvg(item.location_id, true)}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-[10px] uppercase font-bold text-amber-400">Location</div>
+                    <div class="text-xs text-slate-200 truncate">${getFullLocationPath(item.location_id)}</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="px-3.5 py-2.5 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between gap-1 text-xs">
-              <button onclick="openItemModal('${item.id}')" class="text-slate-300 hover:text-amber-400 font-semibold">Edit</button>
-              <button onclick="cloneItem('${item.id}')" class="text-slate-400 hover:text-white">Clone</button>
-              <button onclick="addItemToActiveList('${item.id}')" class="text-sky-400 hover:text-sky-300 font-semibold">+ List</button>
-              <button onclick="softDeleteItem('${item.id}')" class="text-red-400 hover:text-red-300">Trash</button>
+            <!-- Larger Action Icon Bar (No Delete on Card) -->
+            <div class="px-3 py-2.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between gap-2">
+              <button onclick="openItemDetailModal('${item.id}')" title="View Item Details"
+                class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <span>View</span>
+              </button>
+
+              <button onclick="addItemToActiveList('${item.id}')" title="Add to List"
+                class="p-2 rounded-lg bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+              </button>
+
+              <button onclick="quickCheckoutItem('${item.id}')" title="Quick Check-Out"
+                class="p-2 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </button>
+
+              <button onclick="togglePrintQueue('${item.id}')" title="Queue Label Print"
+                class="p-2 rounded-lg border ${item.print_queued ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              </button>
+
+              <button onclick="openItemModal('${item.id}')" title="Edit Item"
+                class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    async function cloneItem(itemId) {
-      const orig = state.items.find(i => i.id === itemId);
-      if (!orig) return;
-      const copyPayload = {
-        title: `${orig.title} (Copy)`,
-        sku: generateCleanSku(),
-        department: orig.department,
-        subtype_code: orig.subtype_code,
-        location_id: orig.location_id,
-        is_consumable: orig.is_consumable,
-        is_large_object: orig.is_large_object,
-        print_queued: false,
-        print_copies: orig.print_copies || 1,
-        borrow_rent_mode: orig.borrow_rent_mode,
-        readiness_status: orig.readiness_status,
-        quantity_total: orig.quantity_total || 1,
-        low_stock_threshold: orig.low_stock_threshold,
-        safety_flags: orig.safety_flags || [],
-        ownership_source: orig.ownership_source,
-        replacement_value: orig.replacement_value,
-        condition_notes: orig.condition_notes,
-        colors: orig.colors || [],
-        photo_urls: orig.photo_urls || [],
-        specifications: orig.specifications || {},
-        notes: orig.notes
+    // =========================================================================
+    // READ-ONLY ITEM DETAIL MODAL & QUICK CHECK-OUT
+    // =========================================================================
+    function openItemDetailModal(itemId) {
+      const item = state.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('detail-sku').textContent = item.sku || '------';
+      document.getElementById('detail-dept').textContent = `${item.department || 'ASSET'}${item.subtype_code ? ' • ' + item.subtype_code : ''}`;
+      document.getElementById('detail-title').textContent = item.title;
+      document.getElementById('detail-description').textContent = item.description || item.notes || 'No description provided.';
+      document.getElementById('detail-location-path').textContent = getFullLocationPath(item.location_id);
+
+      const photos = (item.photo_urls && item.photo_urls.length) ? item.photo_urls : (item.photo_url ? [item.photo_url] : []);
+      const mainPhotoEl = document.getElementById('detail-main-photo');
+      mainPhotoEl.innerHTML = photos[0]
+        ? `<img src="${photos[0]}" class="w-full h-full object-contain" />`
+        : `<span class="text-xs text-slate-500 font-mono">NO PHOTO AVAILABLE</span>`;
+
+      document.getElementById('detail-thumbs').innerHTML = photos.map(url => `
+        <img src="${url}" onclick="document.getElementById('detail-main-photo').innerHTML='<img src=\\'${url}\\' class=\\'w-full h-full object-contain\\' />'"
+          class="w-14 h-14 rounded-lg object-cover border border-slate-700 cursor-pointer hover:border-amber-400" />
+      `).join('');
+
+      const showBadges = state.itemShows
+        .filter(is => is.item_id === item.id)
+        .map(is => state.shows.find(s => s.id === is.show_id))
+        .filter(Boolean)
+        .map(s => `<span class="text-xs px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Show: ${s.title}</span>`);
+
+      document.getElementById('detail-tags').innerHTML = [
+        `<span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">${item.readiness_status || 'READY_FOR_STAGE'}</span>`,
+        `<span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-sky-300 border border-slate-700">${item.borrow_rent_mode || 'INTERNAL_ONLY'}</span>`,
+        ...(item.safety_flags || []).map(f => `<span class="text-xs px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">${f}</span>`),
+        ...showBadges
+      ].join('');
+
+      const specs = item.specifications || {};
+      const specEntries = Object.entries(specs);
+      document.getElementById('detail-specs').innerHTML = specEntries.length
+        ? specEntries.map(([k, v]) => `<div><strong class="text-slate-400">${k}:</strong> ${v}</div>`).join('')
+        : `<div class="text-slate-500">Quantity: ${item.quantity_total ?? 1} • Ownership: ${item.ownership_source || 'OWNED'}</div>`;
+
+      document.getElementById('detail-mini-map').innerHTML = buildVectorMiniMapSvg(item.location_id, false);
+
+      document.getElementById('detail-btn-add-list').onclick = () => addItemToActiveList(item.id);
+      document.getElementById('detail-btn-checkout').onclick = async () => {
+        await quickCheckoutItem(item.id);
+        closeModal('item-detail-modal');
       };
-      const { error } = await sb.from('items').insert(copyPayload);
-      if (error) return alert(`Clone failed: ${error.message}`);
+      document.getElementById('detail-btn-edit').onclick = () => {
+        closeModal('item-detail-modal');
+        openItemModal(item.id);
+      };
+
+      document.getElementById('item-detail-modal').classList.remove('hidden');
+    }
+
+    async function quickCheckoutItem(itemId) {
+      await sb.from('items').update({ readiness_status: 'PULLED' }).eq('id', itemId);
       await loadAllData();
+      alert('Item marked as Checked-Out / Pulled.');
     }
 
     // =========================================================================
-    // VIEW 2: SUPPLIES (CONSUMABLES)
+    // 2. SEPARATE SUPPLIES TAB & SEPARATE SUPPLY MODAL
     // =========================================================================
     function renderSupplies() {
       const lowOnly = document.getElementById('filter-low-stock').checked;
@@ -999,7 +1208,7 @@
 
       const tbody = document.getElementById('supplies-tbody');
       if (!supplies.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 text-xs">No shop supplies matching filter.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 text-xs">No shop supplies matching filter. Click "+ Add Supply Item" to create one.</td></tr>`;
         return;
       }
 
@@ -1009,27 +1218,83 @@
           <tr class="hover:bg-slate-800/40">
             <td class="px-4 py-3">
               <div class="font-semibold text-white">${s.title}</div>
-              <div class="text-[11px] font-mono text-slate-400">${s.sku || ''}</div>
+              <div class="text-[11px] font-mono text-slate-400">${s.sku || ''} ${s.notes ? '• ' + s.notes : ''}</div>
             </td>
             <td class="px-4 py-3 text-xs text-slate-300">${s.subtype_code || s.department}</td>
             <td class="px-4 py-3 text-xs text-slate-300">${getFullLocationPath(s.location_id)}</td>
             <td class="px-4 py-3">
               <div class="inline-flex items-center gap-2 bg-slate-800 rounded-lg px-2 py-1 border border-slate-700">
-                <button onclick="adjustSupplyQty('${s.id}', -1)" class="px-1.5 text-slate-300 hover:text-white font-bold">-</button>
+                <button onclick="adjustSupplyQty('${s.id}', -1)" class="px-2 text-slate-300 hover:text-white font-bold">-</button>
                 <span class="font-mono font-bold ${isLow ? 'text-red-400' : 'text-white'}">${s.quantity_total ?? 0}</span>
-                <button onclick="adjustSupplyQty('${s.id}', 1)" class="px-1.5 text-slate-300 hover:text-white font-bold">+</button>
+                <button onclick="adjustSupplyQty('${s.id}', 1)" class="px-2 text-slate-300 hover:text-white font-bold">+</button>
               </div>
               ${isLow ? `<span class="ml-2 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">LOW</span>` : ''}
             </td>
             <td class="px-4 py-3 text-xs text-slate-400">${s.low_stock_threshold ?? '—'}</td>
-            <td class="px-4 py-3 text-right space-x-2 text-xs">
-              <button onclick="addItemToActiveList('${s.id}')" class="text-sky-400 hover:underline">+ List</button>
-              <button onclick="openItemModal('${s.id}')" class="text-amber-400 hover:underline">Edit</button>
-              <button onclick="softDeleteItem('${s.id}')" class="text-red-400 hover:underline">Trash</button>
+            <td class="px-4 py-3 text-right">
+              <button onclick="openSupplyModal('${s.id}')" title="Edit Supply" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 inline-flex items-center gap-1 text-xs font-semibold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                <span>Edit</span>
+              </button>
             </td>
           </tr>
         `;
       }).join('');
+    }
+
+    function openSupplyModal(supplyId = null) {
+      const supply = supplyId ? state.items.find(i => i.id === supplyId) : null;
+      document.getElementById('edit-supply-id').value = supply ? supply.id : '';
+      document.getElementById('supply-title').value = supply ? supply.title : '';
+      document.getElementById('supply-qty').value = supply ? (supply.quantity_total ?? 1) : 1;
+      document.getElementById('supply-threshold').value = supply && supply.low_stock_threshold != null ? supply.low_stock_threshold : '';
+      document.getElementById('supply-location').value = supply ? (supply.location_id || '') : '';
+      document.getElementById('supply-notes').value = supply ? (supply.notes || '') : '';
+
+      const consumableParent = state.itemTypes.find(t => t.code === 'CONSUMABLES');
+      const supplySubtypes = state.itemTypes.filter(t => t.is_consumable && t.code !== 'CONSUMABLES');
+      document.getElementById('supply-subtype').innerHTML = supplySubtypes.length
+        ? supplySubtypes.map(s => `<option value="${s.code}">${s.label}</option>`).join('')
+        : `<option value="CONSUMABLES">${consumableParent ? consumableParent.label : 'Shop Supplies'}</option>`;
+
+      if (supply && supply.subtype_code) document.getElementById('supply-subtype').value = supply.subtype_code;
+      document.getElementById('btn-delete-supply').classList.toggle('hidden', !supply);
+      document.getElementById('supply-modal').classList.remove('hidden');
+    }
+
+    async function saveSupplyItem() {
+      const title = document.getElementById('supply-title').value.trim();
+      if (!title) return alert('Supply name is required.');
+      const threshRaw = document.getElementById('supply-threshold').value;
+      const editId = document.getElementById('edit-supply-id').value;
+
+      const payload = {
+        title,
+        sku: editId ? (state.items.find(i => i.id === editId)?.sku || generateCleanSku()) : generateCleanSku(),
+        department: 'CONSUMABLES',
+        item_type_code: 'CONSUMABLES',
+        subtype_code: document.getElementById('supply-subtype').value || 'CONSUMABLES',
+        is_consumable: true,
+        quantity_total: Number(document.getElementById('supply-qty').value || 0),
+        low_stock_threshold: threshRaw !== '' ? Number(threshRaw) : null,
+        location_id: document.getElementById('supply-location').value || null,
+        notes: document.getElementById('supply-notes').value.trim() || null
+      };
+
+      const { error } = editId
+        ? await sb.from('items').update(payload).eq('id', editId)
+        : await sb.from('items').insert(payload);
+
+      if (error) return alert(`Save supply failed: ${error.message}`);
+      closeModal('supply-modal');
+      await loadAllData();
+    }
+
+    async function deleteSupplyFromModal() {
+      const id = document.getElementById('edit-supply-id').value;
+      if (!id) return;
+      closeModal('supply-modal');
+      await softDeleteItem(id);
     }
 
     async function adjustSupplyQty(id, delta) {
@@ -1041,7 +1306,285 @@
     }
 
     // =========================================================================
-    // VIEW 3: BORROW / RENT LISTS & DIGITAL / PRINTABLE TECH PULL LISTS
+    // 5. INTERACTIVE VECTOR SPACE MAPS & LOCATION HIERARCHY
+    // =========================================================================
+    function setMapTool(tool) {
+      mapTool = tool;
+      document.querySelectorAll('.map-tool-btn').forEach(btn => {
+        btn.className = 'map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700';
+      });
+      const active = document.getElementById(`tool-${tool}`);
+      if (active) active.className = 'map-tool-btn text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg';
+
+      const hints = {
+        SELECT: 'Click any room or shelf dot on the floorplan to inspect items or edit.',
+        DRAW_ROOM: 'Click and drag across the grid to draw a new Room box.',
+        DRAW_SUBROOM: 'Click and drag inside an existing room to draw an overlapping Sub-Room.',
+        DROP_DOT: 'Click anywhere on the floorplan to drop a Shelf / Rack Location Dot.'
+      };
+      document.getElementById('map-tool-hint').textContent = hints[tool] || '';
+    }
+
+    function getSvgCoords(svgEl, evt) {
+      const rect = svgEl.getBoundingClientRect();
+      return {
+        x: Math.round(((evt.clientX - rect.left) / rect.width) * 1000),
+        y: Math.round(((evt.clientY - rect.top) / rect.height) * 620)
+      };
+    }
+
+    function setupVectorCanvasEvents() {
+      const svg = document.getElementById('vector-floorplan');
+      const preview = document.getElementById('svg-drag-preview');
+
+      svg.addEventListener('mousedown', (e) => {
+        const pt = getSvgCoords(svg, e);
+        if (mapTool === 'DROP_DOT') {
+          dropShelfDotAt(pt.x, pt.y);
+          return;
+        }
+        if (mapTool === 'DRAW_ROOM' || mapTool === 'DRAW_SUBROOM') {
+          isDrawingMap = true;
+          dragStartSvg = pt;
+          preview.setAttribute('x', pt.x);
+          preview.setAttribute('y', pt.y);
+          preview.setAttribute('width', 0);
+          preview.setAttribute('height', 0);
+          preview.classList.remove('hidden');
+        }
+      });
+
+      svg.addEventListener('mousemove', (e) => {
+        if (!isDrawingMap || !dragStartSvg) return;
+        const pt = getSvgCoords(svg, e);
+        preview.setAttribute('x', Math.min(dragStartSvg.x, pt.x));
+        preview.setAttribute('y', Math.min(dragStartSvg.y, pt.y));
+        preview.setAttribute('width', Math.abs(pt.x - dragStartSvg.x));
+        preview.setAttribute('height', Math.abs(pt.y - dragStartSvg.y));
+      });
+
+      svg.addEventListener('mouseup', async (e) => {
+        if (!isDrawingMap || !dragStartSvg) return;
+        isDrawingMap = false;
+        preview.classList.add('hidden');
+        const pt = getSvgCoords(svg, e);
+        const x = Math.min(dragStartSvg.x, pt.x);
+        const y = Math.min(dragStartSvg.y, pt.y);
+        const w = Math.abs(pt.x - dragStartSvg.x);
+        const h = Math.abs(pt.y - dragStartSvg.y);
+        if (w < 30 || h < 30) return;
+
+        const label = prompt(mapTool === 'DRAW_SUBROOM' ? 'Sub-Room Label (e.g. Paint Room):' : 'Room Label (e.g. Main Warehouse):');
+        if (!label || !label.trim()) return;
+
+        const building = document.getElementById('map-building-select').value || 'Main Bldg';
+        const floor = Number(document.getElementById('map-floor-select').value || 1);
+
+        // Find enclosing parent room if drawing a sub-room
+        let parentId = null;
+        if (mapTool === 'DRAW_SUBROOM') {
+          const cx = x + w / 2;
+          const cy = y + h / 2;
+          const parentRoom = state.locations.find(l =>
+            (l.building_name || l.site_name || 'Main Bldg') === building &&
+            (l.floor_number ?? 1) === floor &&
+            l.svg_x != null && cx >= l.svg_x && cx <= (l.svg_x + l.svg_w) &&
+            cy >= l.svg_y && cy <= (l.svg_y + l.svg_h)
+          );
+          if (parentRoom) parentId = parentRoom.id;
+        }
+
+        await sb.from('locations').insert({
+          name: label.trim(),
+          building_name: building,
+          site_name: building,
+          place_name: label.trim(),
+          room_label: label.trim(),
+          floor_number: floor,
+          floor_level: floor,
+          parent_location_id: parentId,
+          is_sub_room: mapTool === 'DRAW_SUBROOM',
+          location_kind: mapTool === 'DRAW_SUBROOM' ? 'SUB_ROOM' : 'ROOM',
+          svg_x: x,
+          svg_y: y,
+          svg_w: w,
+          svg_h: h
+        });
+
+        setMapTool('SELECT');
+        await loadAllData();
+      });
+    }
+
+    async function dropShelfDotAt(x, y) {
+      const building = document.getElementById('map-building-select').value || 'Main Bldg';
+      const floor = Number(document.getElementById('map-floor-select').value || 1);
+
+      // Detect enclosing room (smallest room wins if nested)
+      const enclosing = state.locations
+        .filter(l => (l.building_name || l.site_name || 'Main Bldg') === building && (l.floor_number ?? 1) === floor && l.svg_x != null &&
+          x >= l.svg_x && x <= (l.svg_x + l.svg_w) && y >= l.svg_y && y <= (l.svg_y + l.svg_h))
+        .sort((a, b) => (a.svg_w * a.svg_h) - (b.svg_w * b.svg_h))[0];
+
+      const shelfName = prompt(`Shelf / Rack Dot Name${enclosing ? ' inside ' + (enclosing.place_name || enclosing.name) : ''}:`);
+      if (!shelfName || !shelfName.trim()) return;
+
+      await sb.from('locations').insert({
+        name: shelfName.trim(),
+        building_name: building,
+        site_name: building,
+        place_name: enclosing ? (enclosing.place_name || enclosing.name) : shelfName.trim(),
+        room_label: enclosing ? (enclosing.place_name || enclosing.name) : shelfName.trim(),
+        floor_number: floor,
+        floor_level: floor,
+        parent_location_id: enclosing ? enclosing.id : null,
+        location_kind: 'SHELF_DOT',
+        dot_x: x,
+        dot_y: y
+      });
+
+      setMapTool('SELECT');
+      await loadAllData();
+    }
+
+    function addNewBuildingPrompt() {
+      const b = prompt('New Building / Site Name (e.g. Annex Warehouse):');
+      if (!b || !b.trim()) return;
+      const sel = document.getElementById('map-building-select');
+      const opt = document.createElement('option');
+      opt.value = b.trim();
+      opt.textContent = b.trim();
+      sel.appendChild(opt);
+      sel.value = b.trim();
+      renderSpaceMap();
+    }
+
+    function onMapBuildingChange() {
+      renderSpaceMap();
+    }
+
+    function renderSpaceMap() {
+      const buildingSel = document.getElementById('map-building-select');
+      const buildings = Array.from(new Set(['Main Bldg', ...state.locations.map(l => l.building_name || l.site_name).filter(Boolean)]));
+      const currentBldg = buildingSel.value || buildings[0];
+      buildingSel.innerHTML = buildings.map(b => `<option value="${b}">${b}</option>`).join('');
+      buildingSel.value = currentBldg;
+
+      const floor = Number(document.getElementById('map-floor-select').value || 1);
+      const floorLocs = state.locations.filter(l =>
+        (l.building_name || l.site_name || 'Main Bldg') === currentBldg &&
+        (l.floor_number ?? l.floor_level ?? 1) === floor
+      );
+
+      // Sort rooms largest first so nested/overlapping sub-rooms sit cleanly on top
+      const rooms = floorLocs
+        .filter(l => (l.svg_w && l.svg_h) || (l.map_w && l.map_h))
+        .sort((a, b) => ((b.svg_w || b.map_w * 10) * (b.svg_h || b.map_h * 6)) - ((a.svg_w || a.map_w * 10) * (a.svg_h || a.map_h * 6)));
+
+      const dots = floorLocs.filter(l => l.dot_x != null && l.dot_y != null);
+
+      document.getElementById('svg-rooms-layer').innerHTML = rooms.map(r => {
+        const rx = r.svg_x != null ? r.svg_x : (r.map_x || 0) * 10;
+        const ry = r.svg_y != null ? r.svg_y : (r.map_y || 0) * 6.2;
+        const rw = r.svg_w != null ? r.svg_w : (r.map_w || 25) * 10;
+        const rh = r.svg_h != null ? r.svg_h : (r.map_h || 25) * 6.2;
+        const isSub = r.is_sub_room || r.location_kind === 'SUB_ROOM';
+        return `
+          <g onclick="inspectLocation('${r.id}')" class="cursor-pointer">
+            <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="10"
+              fill="${isSub ? 'rgba(245, 158, 11, 0.18)' : 'rgba(30, 41, 59, 0.65)'}"
+              stroke="${isSub ? '#f59e0b' : '#64748b'}" stroke-width="2.5" />
+            <text x="${rx + 14}" y="${ry + 26}" fill="${isSub ? '#fbbf24' : '#f8fafc'}" font-size="16" font-weight="bold">
+              ${r.place_name || r.room_label || r.name}
+            </text>
+          </g>
+        `;
+      }).join('');
+
+      document.getElementById('svg-dots-layer').innerHTML = dots.map(d => {
+        const dx = d.dot_x <= 100 ? d.dot_x * 10 : d.dot_x;
+        const dy = d.dot_y <= 100 ? d.dot_y * 6.2 : d.dot_y;
+        return `
+          <g onclick="inspectLocation('${d.id}')" class="cursor-pointer">
+            <circle cx="${dx}" cy="${dy}" r="11" fill="#ef4444" stroke="#ffffff" stroke-width="2.5" />
+            <text x="${dx + 15}" y="${dy + 5}" fill="#fca5a5" font-size="13" font-weight="bold">${d.name}</text>
+          </g>
+        `;
+      }).join('');
+
+      document.getElementById('locations-tree-list').innerHTML = floorLocs.map(l => `
+        <div onclick="inspectLocation('${l.id}')" class="cursor-pointer p-2 rounded-lg bg-slate-800/70 hover:bg-slate-800 border border-slate-700 flex items-center justify-between text-xs">
+          <span class="text-slate-200">${l.parent_location_id ? '↳ ' : ''}${getFullLocationPath(l.id)}</span>
+          <button onclick="event.stopPropagation(); openLocationModal('${l.id}')" class="text-amber-400 hover:underline">Edit</button>
+        </div>
+      `).join('') || `<p class="text-xs text-slate-500">No rooms or shelf dots on this floor yet.</p>`;
+    }
+
+    function inspectLocation(locId) {
+      const loc = state.locations.find(l => l.id === locId);
+      if (!loc) return;
+      const itemsHere = state.items.filter(i => !i.deleted_at && i.location_id === locId);
+      document.getElementById('location-inspector').innerHTML = `
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-sm text-amber-400 uppercase">${loc.name}</h3>
+          <button onclick="openLocationModal('${loc.id}')" class="text-xs text-sky-400 hover:underline">Edit Location</button>
+        </div>
+        <p class="text-xs text-slate-400">${getFullLocationPath(loc.id)}</p>
+        <div class="pt-2 space-y-1">
+          <div class="text-xs font-semibold text-slate-300">Items Stored Here (${itemsHere.length}):</div>
+          ${itemsHere.map(i => `<div onclick="openItemDetailModal('${i.id}')" class="cursor-pointer text-xs text-slate-300 hover:text-amber-400 font-mono">${i.sku} — <span class="font-sans">${i.title}</span></div>`).join('') || '<div class="text-xs text-slate-500">No items assigned here yet.</div>'}
+        </div>
+      `;
+    }
+
+    function openLocationModal(editLocId = null) {
+      const loc = editLocId ? state.locations.find(l => l.id === editLocId) : null;
+      document.getElementById('edit-loc-id').value = loc ? loc.id : '';
+      document.getElementById('loc-site').value = loc ? (loc.building_name || loc.site_name || 'Main Bldg') : (document.getElementById('map-building-select').value || 'Main Bldg');
+      document.getElementById('loc-floor').value = loc ? String(loc.floor_number ?? loc.floor_level ?? 1) : (document.getElementById('map-floor-select').value || '1');
+      document.getElementById('loc-place').value = loc ? (loc.place_name || loc.room_label || '') : '';
+      document.getElementById('loc-rack').value = loc && loc.name !== (loc.place_name || loc.room_label) ? loc.name : '';
+
+      document.getElementById('loc-parent').innerHTML =
+        `<option value="">None (Top-Level Room / Zone)</option>` +
+        state.locations.filter(l => l.id !== editLocId).map(l => `<option value="${l.id}">${getFullLocationPath(l.id)}</option>`).join('');
+      document.getElementById('loc-parent').value = loc ? (loc.parent_location_id || '') : '';
+
+      document.getElementById('location-modal').classList.remove('hidden');
+    }
+
+    async function saveLocation() {
+      const site = document.getElementById('loc-site').value.trim() || 'Main Bldg';
+      const floor = Number(document.getElementById('loc-floor').value || 1);
+      const parentId = document.getElementById('loc-parent').value || null;
+      const place = document.getElementById('loc-place').value.trim();
+      const rack = document.getElementById('loc-rack').value.trim();
+      if (!place && !rack) return alert('Enter a room/zone label or sub-location name.');
+
+      const payload = {
+        name: rack || place,
+        building_name: site,
+        site_name: site,
+        place_name: place || rack,
+        room_label: place || rack,
+        floor_number: floor,
+        floor_level: floor,
+        parent_location_id: parentId,
+        is_sub_room: Boolean(parentId)
+      };
+
+      const editId = document.getElementById('edit-loc-id').value;
+      const { error } = editId
+        ? await sb.from('locations').update(payload).eq('id', editId)
+        : await sb.from('locations').insert(payload);
+
+      if (error) return alert(`Save location failed: ${error.message}`);
+      closeModal('location-modal');
+      await loadAllData();
+    }
+
+    // =========================================================================
+    // REMAINING VIEWS (LISTS, PRINT QUEUE, REPAIRS, AUDIT, TRASH, ADMIN)
     // =========================================================================
     function renderLists() {
       const sidebar = document.getElementById('lists-sidebar');
@@ -1049,9 +1592,7 @@
         sidebar.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs text-slate-400">No Borrow or Rent lists yet.</div>`;
         return;
       }
-
       if (!activeListId && state.lists[0]) activeListId = state.lists[0].id;
-
       sidebar.innerHTML = state.lists.map(l => {
         const count = state.listItems.filter(li => li.list_id === l.id).length;
         const isSelected = l.id === activeListId;
@@ -1062,24 +1603,18 @@
               <span class="text-[10px] font-bold px-2 py-0.5 rounded ${l.list_mode === 'RENT' ? 'bg-purple-950 text-purple-300 border border-purple-700' : 'bg-sky-950 text-sky-300 border border-sky-700'}">${l.list_mode}</span>
             </div>
             <p class="text-xs text-slate-400 mt-1">${count} items • Status: ${l.status}</p>
-            ${l.borrower_renter_name ? `<p class="text-[11px] text-slate-400 mt-0.5">${l.borrower_renter_name}</p>` : ''}
           </div>
         `;
       }).join('');
-
       renderActiveListPanel();
     }
 
-    function selectList(id) {
-      activeListId = id;
-      renderLists();
-    }
+    function selectList(id) { activeListId = id; renderLists(); }
 
     function renderActiveListPanel() {
       const panel = document.getElementById('active-list-panel');
       const list = state.lists.find(l => l.id === activeListId);
       if (!list) return;
-
       const rows = state.listItems.filter(li => li.list_id === list.id);
       const pulledCount = rows.filter(r => r.pulled).length;
 
@@ -1087,78 +1622,48 @@
         <div class="space-y-4">
           <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 pb-3">
             <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-lg font-bold text-white">${list.name}</h3>
-                <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">${list.list_mode}</span>
-              </div>
-              <p class="text-xs text-slate-400 mt-1">
-                ${list.borrower_renter_name ? `Contact: ${list.borrower_renter_name} • ` : ''}
-                ${list.rental_fee ? `Fee: $${list.rental_fee} • ` : ''}
-                ${list.due_return_date ? `Due Back: ${list.due_return_date} • ` : ''}
-                Digital Pull Progress: <strong class="text-emerald-400">${pulledCount} / ${rows.length}</strong>
-              </p>
-              ${list.notes ? `<p class="text-xs text-slate-300 mt-1">${list.notes}</p>` : ''}
+              <h3 class="text-lg font-bold text-white">${list.name} <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 ml-1">${list.list_mode}</span></h3>
+              <p class="text-xs text-slate-400 mt-1">Pull Progress: <strong class="text-emerald-400">${pulledCount} / ${rows.length}</strong></p>
             </div>
             <div class="flex flex-wrap gap-2">
-              <button onclick="printPullSheet('${list.id}')" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">
-                Print Pull Sheet (With QR)
-              </button>
-              <button onclick="markListReturned('${list.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-2 rounded-lg border border-slate-700">
-                Check-In / Returned
-              </button>
+              <button onclick="printPullSheet('${list.id}')" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">Print Pull Sheet (With QR)</button>
+              <button onclick="markListReturned('${list.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-2 rounded-lg border border-slate-700">Check-In / Returned</button>
             </div>
           </div>
-
           <div class="space-y-2">
-            ${rows.length ? rows.map(li => {
+            ${rows.map(li => {
               const item = state.items.find(i => i.id === li.item_id) || { title: 'Unknown Item', sku: '------' };
               return `
                 <div class="flex items-center justify-between gap-3 p-3 rounded-xl border ${li.pulled ? 'bg-emerald-950/20 border-emerald-800/60' : 'bg-slate-950/60 border-slate-800'}">
                   <label class="flex items-center gap-3 cursor-pointer flex-1">
                     <input type="checkbox" ${li.pulled ? 'checked' : ''} onchange="toggleListItemPulled('${li.id}', this.checked)" class="w-4 h-4 accent-emerald-500" />
                     <div>
-                      <div class="text-sm font-semibold ${li.pulled ? 'line-through text-slate-400' : 'text-white'}">
-                        ${item.title} <span class="font-mono text-xs text-amber-400 ml-1">[${item.sku}]</span>
-                      </div>
-                      <div class="text-xs text-slate-400">
-                        Location: ${getFullLocationPath(item.location_id)} • Qty: ${li.quantity_requested}
-                      </div>
+                      <div class="text-sm font-semibold ${li.pulled ? 'line-through text-slate-400' : 'text-white'}">${item.title} <span class="font-mono text-xs text-amber-400">[${item.sku}]</span></div>
+                      <div class="text-xs text-slate-400">${getFullLocationPath(item.location_id)} • Qty: ${li.quantity_requested}</div>
                     </div>
                   </label>
                   <button onclick="removeListItem('${li.id}')" class="text-xs text-red-400 hover:underline">Remove</button>
                 </div>
               `;
-            }).join('') : `<p class="text-xs text-slate-400 py-4">No items on this list yet. Click "+ List" on any item card in the Catalog or Supplies.</p>`}
+            }).join('') || `<p class="text-xs text-slate-400 py-4">No items on this list yet.</p>`}
           </div>
         </div>
       `;
     }
 
-    function openNewListModal() {
-      document.getElementById('list-name').value = '';
-      document.getElementById('list-contact').value = '';
-      document.getElementById('list-fee').value = '';
-      document.getElementById('list-due').value = '';
-      document.getElementById('list-notes').value = '';
-      document.getElementById('list-modal').classList.remove('hidden');
-    }
-
+    function openNewListModal() { document.getElementById('list-modal').classList.remove('hidden'); }
     async function createList() {
       const name = document.getElementById('list-name').value.trim();
-      if (!name) return alert('Please enter a list name.');
-      const { data, error } = await sb.from('lists').insert({
+      if (!name) return;
+      const { data } = await sb.from('lists').insert({
         name,
         list_mode: document.getElementById('list-mode').value,
         show_id: document.getElementById('list-show-id').value || null,
-        created_by_name: currentUserName,
-        created_by_role: currentRole,
         borrower_renter_name: document.getElementById('list-contact').value.trim() || null,
         rental_fee: document.getElementById('list-fee').value ? Number(document.getElementById('list-fee').value) : null,
         due_return_date: document.getElementById('list-due').value || null,
         notes: document.getElementById('list-notes').value.trim() || null
       }).select().single();
-
-      if (error) return alert(`Could not create list: ${error.message}`);
       if (data) activeListId = data.id;
       closeModal('list-modal');
       await loadAllData();
@@ -1166,652 +1671,284 @@
 
     async function addItemToActiveList(itemId) {
       if (!activeListId && state.lists.length) activeListId = state.lists[0].id;
-      if (!activeListId) {
-        alert('Create a Borrow or Rent list first in the Lists tab.');
-        switchTab('lists');
-        openNewListModal();
-        return;
-      }
-      await sb.from('list_items').upsert({
-        list_id: activeListId,
-        item_id: itemId,
-        quantity_requested: 1
-      }, { onConflict: 'list_id,item_id' });
+      if (!activeListId) { switchTab('lists'); openNewListModal(); return; }
+      await sb.from('list_items').upsert({ list_id: activeListId, item_id: itemId, quantity_requested: 1 }, { onConflict: 'list_id,item_id' });
       await loadAllData();
-      alert('Added to active list.');
+      alert('Added to active Borrow/Rent list.');
     }
 
-    async function toggleListItemPulled(listItemId, pulled) {
-      await sb.from('list_items').update({
-        pulled,
-        pulled_at: pulled ? new Date().toISOString() : null,
-        pulled_by: pulled ? currentUserName : null
-      }).eq('id', listItemId);
-      await loadAllData();
-    }
-
-    async function removeListItem(listItemId) {
-      await sb.from('list_items').delete().eq('id', listItemId);
-      await loadAllData();
-    }
-
-    async function markListReturned(listId) {
-      await sb.from('lists').update({ status: 'RETURNED', returned_at: new Date().toISOString() }).eq('id', listId);
-      await loadAllData();
-    }
+    async function toggleListItemPulled(id, pulled) { await sb.from('list_items').update({ pulled }).eq('id', id); await loadAllData(); }
+    async function removeListItem(id) { await sb.from('list_items').delete().eq('id', id); await loadAllData(); }
+    async function markListReturned(id) { await sb.from('lists').update({ status: 'RETURNED', returned_at: new Date().toISOString() }).eq('id', id); await loadAllData(); }
 
     function printPullSheet(listId) {
       const list = state.lists.find(l => l.id === listId);
       const rows = state.listItems.filter(li => li.list_id === listId);
       if (!list) return;
-
       const printArea = document.getElementById('print-area');
       printArea.innerHTML = `
         <div class="space-y-4">
-          <div class="border-b-2 border-black pb-2 flex justify-between items-end">
-            <div>
-              <h1 class="text-xl font-black uppercase">Off Square Theatre Co. — Tech Pull Sheet</h1>
-              <p class="text-sm font-bold">${list.name} (${list.list_mode})</p>
-              <p class="text-xs">${list.borrower_renter_name ? 'Borrower/Renter: ' + list.borrower_renter_name : ''} ${list.due_return_date ? ' | Due: ' + list.due_return_date : ''}</p>
-            </div>
-            <div class="text-xs text-right">Printed: ${new Date().toLocaleDateString()}</div>
+          <div class="border-b-2 border-black pb-2 flex justify-between">
+            <div><h1 class="text-xl font-black uppercase">Off Square Theatre Co. — Tech Pull Sheet</h1><p class="text-sm font-bold">${list.name} (${list.list_mode})</p></div>
+            <div class="text-xs">Printed: ${new Date().toLocaleDateString()}</div>
           </div>
-          <table class="w-full border-collapse text-left text-xs">
-            <thead>
-              <tr class="border-b border-black">
-                <th class="py-2 w-10">Pull</th>
-                <th class="py-2">SKU</th>
-                <th class="py-2">Item</th>
-                <th class="py-2">Qty</th>
-                <th class="py-2">Full Location Path</th>
-                <th class="py-2 text-right">QR Scan</th>
-              </tr>
-            </thead>
+          <table class="w-full text-left text-xs">
+            <thead><tr class="border-b border-black"><th class="py-2">Pull</th><th>SKU</th><th>Item</th><th>Location</th><th class="text-right">QR</th></tr></thead>
             <tbody>
               ${rows.map((r, idx) => {
                 const item = state.items.find(i => i.id === r.item_id) || {};
-                return `
-                  <tr class="pull-sheet-row border-b border-gray-300">
-                    <td class="py-2 font-bold text-base">[ &nbsp; ]</td>
-                    <td class="py-2 font-mono font-bold">${item.sku || ''}</td>
-                    <td class="py-2 font-semibold">${item.title || ''}</td>
-                    <td class="py-2">${r.quantity_requested}</td>
-                    <td class="py-2">${getFullLocationPath(item.location_id)}</td>
-                    <td class="py-2 text-right"><div id="pull-qr-${idx}" class="inline-block"></div></td>
-                  </tr>
-                `;
+                return `<tr class="pull-sheet-row border-b border-gray-300"><td class="py-2 font-bold">[ &nbsp; ]</td><td class="font-mono font-bold">${item.sku || ''}</td><td>${item.title || ''}</td><td>${getFullLocationPath(item.location_id)}</td><td class="text-right"><div id="pull-qr-${idx}" class="inline-block"></div></td></tr>`;
               }).join('')}
             </tbody>
           </table>
         </div>
       `;
-
       rows.forEach((r, idx) => {
         const item = state.items.find(i => i.id === r.item_id) || {};
         const el = document.getElementById(`pull-qr-${idx}`);
-        if (el && item.sku) {
-          new QRCode(el, { text: String(item.sku), width: 48, height: 48 });
-        }
+        if (el && item.sku) new QRCode(el, { text: String(item.sku), width: 48, height: 48 });
       });
-
       setTimeout(() => window.print(), 150);
     }
 
-    // =========================================================================
-    // VIEW 4: LABEL PRINT QUEUE
-    // =========================================================================
     async function togglePrintQueue(itemId) {
       const item = state.items.find(i => i.id === itemId);
       if (!item) return;
       const nextQueued = !item.print_queued;
-      const defaultCopies = isLargeOrFlatOrBin(item) ? 2 : 1;
-      await sb.from('items').update({
-        print_queued: nextQueued,
-        print_copies: nextQueued ? (item.print_copies || defaultCopies) : item.print_copies
-      }).eq('id', itemId);
+      const defaultCopies = item.is_large_object ? 2 : 1;
+      await sb.from('items').update({ print_queued: nextQueued, print_copies: nextQueued ? (item.print_copies || defaultCopies) : item.print_copies }).eq('id', itemId);
       await loadAllData();
-    }
-
-    function isLargeOrFlatOrBin(item) {
-      if (item.is_large_object) return true;
-      const typeObj = state.itemTypes.find(t => t.code === item.subtype_code || t.code === item.department);
-      return typeObj ? typeObj.default_print_copies >= 2 : false;
     }
 
     function renderPrintQueue() {
       const queued = state.items.filter(i => !i.deleted_at && i.print_queued);
       const container = document.getElementById('print-queue-list');
-      if (!queued.length) {
-        container.innerHTML = `<div class="col-span-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">Label print queue is empty. Click the tag icon on any catalog item to queue it.</div>`;
-        return;
-      }
-
+      if (!queued.length) { container.innerHTML = `<div class="col-span-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">Label print queue is empty.</div>`; return; }
       container.innerHTML = queued.map(item => `
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4">
-          <div class="bg-white text-black rounded-lg p-3 flex-1 flex items-center justify-between gap-3 border border-slate-300">
-            <div class="space-y-0.5">
-              <div class="text-[9px] font-bold tracking-wider uppercase text-gray-600">OFF SQUARE THEATRE CO. - INVENTORY</div>
-              <div class="text-sm font-black uppercase leading-tight">${item.title}</div>
-              <div class="text-[10px] font-semibold text-gray-700">
-                DEPT: ${item.department || 'GENERAL'}${item.colors && item.colors[0] ? ' | COLOR: ' + item.colors[0].toUpperCase() : ''}
-              </div>
-              <div class="text-[10px] font-bold text-gray-900">LOC: ${getGeneralLocationLabel(item.location_id)}</div>
+          <div class="bg-white text-black rounded-lg p-3 flex-1 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-[9px] font-bold uppercase text-gray-600">OFF SQUARE THEATRE CO. - INVENTORY</div>
+              <div class="text-sm font-black uppercase">${item.title}</div>
+              <div class="text-[10px] font-bold">LOC: ${getGeneralLocationLabel(item.location_id)}</div>
             </div>
-            <div class="text-center shrink-0">
-              <div id="preview-qr-${item.id}" class="inline-block"></div>
-              <div class="font-mono text-[11px] font-bold tracking-widest mt-0.5">${item.sku || ''}</div>
-            </div>
+            <div class="text-center"><div id="preview-qr-${item.id}"></div><div class="font-mono text-[11px] font-bold">${item.sku || ''}</div></div>
           </div>
-
           <div class="flex flex-col items-end gap-2">
-            <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-1 rounded-lg border border-slate-700">
+            <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-1 rounded-lg">
               <button onclick="updatePrintCopies('${item.id}', -1)" class="px-1.5 text-white font-bold">-</button>
               <span class="font-mono text-xs text-amber-400 font-bold">${item.print_copies || 1}x</span>
               <button onclick="updatePrintCopies('${item.id}', 1)" class="px-1.5 text-white font-bold">+</button>
             </div>
-            <button onclick="togglePrintQueue('${item.id}')" class="text-xs text-red-400 hover:underline">Remove</button>
+            <button onclick="togglePrintQueue('${item.id}')" class="text-xs text-red-400">Remove</button>
           </div>
         </div>
       `).join('');
-
-      queued.forEach(item => {
-        const el = document.getElementById(`preview-qr-${item.id}`);
-        if (el && item.sku) {
-          new QRCode(el, { text: String(item.sku), width: 52, height: 52 });
-        }
-      });
+      queued.forEach(item => { const el = document.getElementById(`preview-qr-${item.id}`); if (el && item.sku) new QRCode(el, { text: String(item.sku), width: 52, height: 52 }); });
     }
 
     async function updatePrintCopies(itemId, delta) {
       const item = state.items.find(i => i.id === itemId);
       if (!item) return;
-      const next = Math.max(1, (item.print_copies || 1) + delta);
-      await sb.from('items').update({ print_copies: next }).eq('id', itemId);
+      await sb.from('items').update({ print_copies: Math.max(1, (item.print_copies || 1) + delta) }).eq('id', itemId);
       await loadAllData();
     }
 
     async function clearPrintQueue() {
       const ids = state.items.filter(i => i.print_queued).map(i => i.id);
-      if (!ids.length) return;
-      await sb.from('items').update({ print_queued: false }).in('id', ids);
-      await loadAllData();
+      if (ids.length) { await sb.from('items').update({ print_queued: false }).in('id', ids); await loadAllData(); }
     }
 
     function printQueuedLabels() {
       const queued = state.items.filter(i => !i.deleted_at && i.print_queued);
       if (!queued.length) return;
-
       const labels = [];
-      queued.forEach(item => {
-        const copies = item.print_copies || 1;
-        for (let c = 0; c < copies; c++) labels.push(item);
-      });
-
+      queued.forEach(item => { for (let c = 0; c < (item.print_copies || 1); c++) labels.push(item); });
       const printArea = document.getElementById('print-area');
       printArea.innerHTML = labels.map((item, idx) => `
         <div class="thermal-label p-2 flex items-center justify-between gap-2 max-w-[360px]">
-          <div>
-            <div class="text-[8px] font-bold uppercase">OFF SQUARE THEATRE CO. - INVENTORY</div>
-            <div class="text-sm font-black uppercase">${item.title}</div>
-            <div class="text-[9px] font-bold">DEPT: ${item.department || 'GENERAL'}${item.colors && item.colors[0] ? ' | COLOR: ' + item.colors[0].toUpperCase() : ''}</div>
-            <div class="text-[9px] font-bold">LOC: ${getGeneralLocationLabel(item.location_id)}</div>
-          </div>
-          <div class="text-center">
-            <div id="print-qr-${idx}" class="inline-block"></div>
-            <div class="font-mono text-[10px] font-bold">${item.sku || ''}</div>
-          </div>
+          <div><div class="text-[8px] font-bold uppercase">OFF SQUARE THEATRE CO. - INVENTORY</div><div class="text-sm font-black uppercase">${item.title}</div><div class="text-[9px] font-bold">LOC: ${getGeneralLocationLabel(item.location_id)}</div></div>
+          <div class="text-center"><div id="print-qr-${idx}"></div><div class="font-mono text-[10px] font-bold">${item.sku || ''}</div></div>
         </div>
       `).join('');
-
-      labels.forEach((item, idx) => {
-        const el = document.getElementById(`print-qr-${idx}`);
-        if (el && item.sku) new QRCode(el, { text: String(item.sku), width: 48, height: 48 });
-      });
-
-      setTimeout(() => {
-        window.print();
-        if (confirm('Did labels print cleanly? Clear the Label Print Queue now?')) {
-          clearPrintQueue();
-        }
-      }, 150);
+      labels.forEach((item, idx) => { const el = document.getElementById(`print-qr-${idx}`); if (el && item.sku) new QRCode(el, { text: String(item.sku), width: 48, height: 48 }); });
+      setTimeout(() => { window.print(); if (confirm('Did labels print cleanly? Clear queue now?')) clearPrintQueue(); }, 150);
     }
 
-    // =========================================================================
-    // VIEW 5: SPACE MAPS (LABELED ROOMS + OVERLAPPING ZONES + RACK DOTS)
-    // =========================================================================
-    function setMapFloor(floor) {
-      activeFloor = floor;
-      document.getElementById('btn-floor-1').className = floor === 1 ? 'text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg' : 'text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg';
-      document.getElementById('btn-floor-2').className = floor === 2 ? 'text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg' : 'text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg';
-      renderSpaceMap();
-    }
-
-    function renderSpaceMap() {
-      const canvas = document.getElementById('space-map-canvas');
-      const floorLocs = state.locations
-        .filter(l => (l.floor_level || 1) === activeFloor && l.map_w && l.map_h)
-        .sort((a, b) => (b.map_w * b.map_h) - (a.map_w * a.map_h));
-
-      if (!floorLocs.length) {
-        canvas.innerHTML = `<div class="h-full flex items-center justify-center text-xs text-slate-500">No rooms mapped on Floor ${activeFloor} yet. Click "+ Add Room / Rack Dot".</div>`;
-        return;
-      }
-
-      canvas.innerHTML = floorLocs.map((loc, idx) => {
-        const isSub = loc.is_sub_room;
-        const label = loc.place_name || loc.room_label || loc.name;
-        const dotHtml = (loc.dot_x != null && loc.dot_y != null) ? `
-          <button onclick="event.stopPropagation(); inspectLocation('${loc.id}')" title="Rack Dot: ${loc.name}"
-            style="left:${loc.dot_x}%; top:${loc.dot_y}%;"
-            class="absolute -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-amber-400 border-2 border-slate-950 shadow hover:scale-125 transition z-30">
-          </button>
-        ` : '';
-
-        return `
-          <div onclick="inspectLocation('${loc.id}')"
-            style="left:${loc.map_x}%; top:${loc.map_y}%; width:${loc.map_w}%; height:${loc.map_h}%; z-index:${10 + idx};"
-            class="absolute rounded-lg border cursor-pointer transition flex items-start justify-start p-2 ${isSub ? 'bg-amber-500/20 border-amber-400 hover:bg-amber-500/30' : 'bg-slate-800/50 border-slate-600 hover:border-slate-400'}">
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded ${isSub ? 'bg-amber-500 text-slate-950' : 'bg-slate-900/90 text-slate-200 border border-slate-700'}">
-              ${label}
-            </span>
-          </div>
-          ${dotHtml}
-        `;
-      }).join('');
-    }
-
-    function inspectLocation(locId) {
-      const loc = state.locations.find(l => l.id === locId);
-      if (!loc) return;
-      const itemsHere = state.items.filter(i => !i.deleted_at && i.location_id === locId);
-      document.getElementById('location-inspector').innerHTML = `
-        <h3 class="font-bold text-sm text-amber-400 uppercase">${loc.place_name || loc.room_label || loc.name}</h3>
-        <p class="text-xs text-slate-400">${getFullLocationPath(loc.id)} • Floor ${loc.floor_level || 1}</p>
-        <div class="border-t border-slate-800 pt-2 space-y-1">
-          <div class="text-xs font-semibold text-slate-300">Items Assigned Here (${itemsHere.length}):</div>
-          ${itemsHere.slice(0, 20).map(i => `<div class="text-xs text-slate-400 font-mono">${i.sku} — <span class="font-sans text-slate-200">${i.title}</span></div>`).join('') || '<div class="text-xs text-slate-500">None yet.</div>'}
-        </div>
-      `;
-    }
-
-    function openLocationModal() {
-      document.getElementById('loc-floor').value = String(activeFloor);
-      document.getElementById('location-modal').classList.remove('hidden');
-    }
-
-    async function saveLocation() {
-      const site = document.getElementById('loc-site').value.trim() || 'Main Bldg';
-      const place = document.getElementById('loc-place').value.trim();
-      const rack = document.getElementById('loc-rack').value.trim();
-      if (!place && !rack) return alert('Enter a room/place label or rack name.');
-
-      const dotXVal = document.getElementById('loc-dot-x').value;
-      const dotYVal = document.getElementById('loc-dot-y').value;
-
-      const { error } = await sb.from('locations').insert({
-        name: rack || place,
-        site_name: site,
-        place_name: place || rack,
-        room_label: place || rack,
-        floor_level: Number(document.getElementById('loc-floor').value || 1),
-        is_sub_room: document.getElementById('loc-subroom').checked,
-        map_x: Number(document.getElementById('loc-x').value || 10),
-        map_y: Number(document.getElementById('loc-y').value || 10),
-        map_w: Number(document.getElementById('loc-w').value || 35),
-        map_h: Number(document.getElementById('loc-h').value || 35),
-        dot_x: dotXVal !== '' ? Number(dotXVal) : null,
-        dot_y: dotYVal !== '' ? Number(dotYVal) : null
-      });
-
-      if (error) return alert(`Save location failed: ${error.message}`);
-      closeModal('location-modal');
-      await loadAllData();
-    }
-
-    // =========================================================================
-    // VIEW 6: REPAIRS (ITEM-LINKED, PRIORITIZED, GROUPED BY ITEM TYPE)
-    // =========================================================================
-    function openRepairModal(preselectItemId = null) {
-      if (preselectItemId) document.getElementById('repair-item-id').value = preselectItemId;
-      document.getElementById('repair-desc').value = '';
-      document.getElementById('repair-modal').classList.remove('hidden');
-    }
-
+    function openRepairModal() { document.getElementById('repair-modal').classList.remove('hidden'); }
     async function saveRepair() {
       const itemId = document.getElementById('repair-item-id').value;
-      const priority = document.getElementById('repair-priority').value;
       const description = document.getElementById('repair-desc').value.trim();
-      if (!itemId || !description) return alert('Select an item and enter a repair description.');
-
+      if (!itemId || !description) return;
       const item = state.items.find(i => i.id === itemId);
-      const { error } = await sb.from('maintenance_logs').insert({
-        item_id: itemId,
-        item_title_snapshot: item ? item.title : null,
-        item_sku_snapshot: item ? item.sku : null,
-        item_department: item ? item.department : null,
-        priority,
-        status: 'OPEN',
-        description
+      await sb.from('maintenance_logs').insert({
+        item_id: itemId, item_title_snapshot: item?.title, item_sku_snapshot: item?.sku, item_department: item?.department,
+        priority: document.getElementById('repair-priority').value, status: 'OPEN', description
       });
-
-      if (error) return alert(`Save repair failed: ${error.message}`);
       closeModal('repair-modal');
       await loadAllData();
     }
 
     function renderRepairs() {
       const hideResolved = document.getElementById('hide-resolved-repairs').checked;
-      const priorityRank = { CRITICAL: 1, HIGH: 2, NORMAL: 3, LOW: 4 };
-
-      const filtered = state.repairs
-        .filter(r => !hideResolved || r.status !== 'RESOLVED')
-        .sort((a, b) => (priorityRank[a.priority] || 9) - (priorityRank[b.priority] || 9));
-
+      const rank = { CRITICAL: 1, HIGH: 2, NORMAL: 3, LOW: 4 };
+      const filtered = state.repairs.filter(r => !hideResolved || r.status !== 'RESOLVED').sort((a, b) => (rank[a.priority] || 9) - (rank[b.priority] || 9));
       const container = document.getElementById('repairs-grouped-container');
-      if (!filtered.length) {
-        container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">No repairs matching filter.</div>`;
-        return;
-      }
-
+      if (!filtered.length) { container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">No repairs matching filter.</div>`; return; }
       const groups = {};
       filtered.forEach(r => {
         const linked = state.items.find(i => i.id === r.item_id);
-        const dept = (linked && linked.department) || r.item_department || 'OTHER_UNLINKED';
+        const dept = linked?.department || r.item_department || 'OTHER';
         if (!groups[dept]) groups[dept] = [];
         groups[dept].push({ ...r, linked });
       });
-
       container.innerHTML = Object.entries(groups).map(([dept, tickets]) => `
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-          <div class="bg-slate-800/80 px-4 py-2.5 flex items-center justify-between">
-            <h3 class="font-bold text-xs uppercase tracking-wider text-amber-400">${dept} (${tickets.length})</h3>
-          </div>
+          <div class="bg-slate-800/80 px-4 py-2.5 font-bold text-xs uppercase text-amber-400">${dept} (${tickets.length})</div>
           <div class="divide-y divide-slate-800">
             ${tickets.map(t => `
-              <div class="p-4 flex flex-wrap items-center justify-between gap-3">
-                <div class="space-y-1">
-                  <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded ${t.priority === 'CRITICAL' ? 'bg-red-600 text-white' : t.priority === 'HIGH' ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300'}">${t.priority}</span>
-                    <span class="font-bold text-sm text-white">${t.linked ? t.linked.title : (t.item_title_snapshot || 'Unlinked Item')}</span>
-                    <span class="font-mono text-xs text-slate-400">[${t.linked ? t.linked.sku : (t.item_sku_snapshot || '------')}]</span>
-                  </div>
-                  <p class="text-xs text-slate-300">${t.description}</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  ${t.status !== 'RESOLVED' ? `<button onclick="resolveRepair('${t.id}')" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded-lg">Mark Resolved</button>` : `<span class="text-xs text-emerald-400 font-semibold">Resolved</span>`}
-                </div>
+              <div class="p-4 flex items-center justify-between gap-3">
+                <div><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 mr-2">${t.priority}</span><strong class="text-sm text-white">${t.linked ? t.linked.title : t.item_title_snapshot}</strong><p class="text-xs text-slate-300 mt-1">${t.description}</p></div>
+                ${t.status !== 'RESOLVED' ? `<button onclick="resolveRepair('${t.id}')" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg">Resolve</button>` : `<span class="text-xs text-emerald-400">Resolved</span>`}
               </div>
             `).join('')}
           </div>
         </div>
       `).join('');
     }
+    async function resolveRepair(id) { await sb.from('maintenance_logs').update({ status: 'RESOLVED', resolved_at: new Date().toISOString() }).eq('id', id); await loadAllData(); }
 
-    async function resolveRepair(repairId) {
-      await sb.from('maintenance_logs').update({ status: 'RESOLVED', resolved_at: new Date().toISOString() }).eq('id', repairId);
-      await loadAllData();
-    }
-
-    // =========================================================================
-    // VIEW 7: QUICK SCAN-TO-MOVE & SPOT-CHECK AUDIT
-    // =========================================================================
     async function handleQuickScan() {
-      const raw = document.getElementById('scan-sku-input').value.trim();
+      const sku = (document.getElementById('scan-sku-input').value.trim().match(/\d{6}/) || [document.getElementById('scan-sku-input').value.trim()])[0];
       const targetLoc = document.getElementById('scan-target-location').value;
-      const skuMatch = raw.match(/\d{6}/);
-      const sku = skuMatch ? skuMatch[0] : raw;
       const item = state.items.find(i => !i.deleted_at && String(i.sku) === sku);
       const logEl = document.getElementById('scan-audit-log');
-
-      if (!item) {
-        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-red-950/60 border border-red-800 text-xs text-red-200">SKU "${sku}" not found in active catalog.</div>`);
-        return;
-      }
-
+      if (!item) { logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-red-950/60 text-xs text-red-200">SKU "${sku}" not found.</div>`); return; }
       if (targetLoc) {
         await sb.from('items').update({ location_id: targetLoc }).eq('id', item.id);
         await loadAllData();
-        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-800 text-xs text-emerald-200">Moved <strong>${item.title}</strong> [${item.sku}] → ${getFullLocationPath(targetLoc)}</div>`);
+        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-emerald-950/50 text-xs text-emerald-200">Moved <strong>${item.title}</strong> → ${getFullLocationPath(targetLoc)}</div>`);
       } else {
-        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200">Verified: <strong>${item.title}</strong> [${item.sku}] — Assigned to ${getFullLocationPath(item.location_id)}</div>`);
+        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-slate-800 text-xs text-slate-200">Verified <strong>${item.title}</strong> at ${getFullLocationPath(item.location_id)}</div>`);
       }
       document.getElementById('scan-sku-input').value = '';
     }
 
-    // =========================================================================
-    // VIEW 8: 30-DAY SOFT-DELETE TRASH BIN (WITH 5-ITEM NON-ADMIN GUARDRAIL)
-    // =========================================================================
-    function getNonAdminOtherDeleteCount() {
-      return Number(localStorage.getItem('ost_other_deletes') || '0');
-    }
-
+    function getNonAdminOtherDeleteCount() { return Number(localStorage.getItem('ost_other_deletes') || '0'); }
     async function softDeleteItem(itemId) {
       const item = state.items.find(i => i.id === itemId);
       if (!item) return;
-
       if (currentRole !== 'ADMIN') {
-        const isOwn = item.created_by === currentUserName;
         const count = getNonAdminOtherDeleteCount();
-        if (!isOwn && count >= 5) {
-          alert('Safety Guardrail: Non-admin users cannot delete more than 5 items created by others.');
-          return;
-        }
-        if (!isOwn) localStorage.setItem('ost_other_deletes', String(count + 1));
+        if (item.created_by !== currentUserName && count >= 5) return alert('Safety Guardrail: Non-admin users cannot delete more than 5 items created by others.');
+        if (item.created_by !== currentUserName) localStorage.setItem('ost_other_deletes', String(count + 1));
       }
-
-      await sb.from('items').update({
-        deleted_at: new Date().toISOString(),
-        deleted_by: `${currentUserName} (${currentRole})`
-      }).eq('id', itemId);
+      await sb.from('items').update({ deleted_at: new Date().toISOString(), deleted_by: `${currentUserName} (${currentRole})` }).eq('id', itemId);
       await loadAllData();
     }
-
-    async function restoreItem(itemId) {
-      await sb.from('items').update({ deleted_at: null, deleted_by: null }).eq('id', itemId);
-      await loadAllData();
-    }
-
-    async function purgeItem(itemId) {
-      if (currentRole !== 'ADMIN') return alert('Only Admins can permanently purge items.');
-      if (!confirm('Permanently delete this item? This cannot be undone.')) return;
-      await sb.from('items').delete().eq('id', itemId);
-      await loadAllData();
-    }
+    async function restoreItem(id) { await sb.from('items').update({ deleted_at: null, deleted_by: null }).eq('id', id); await loadAllData(); }
+    async function purgeItem(id) { if (currentRole === 'ADMIN' && confirm('Permanently purge item?')) { await sb.from('items').delete().eq('id', id); await loadAllData(); } }
 
     function renderTrash() {
-      const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-      const now = Date.now();
-      const trashed = state.items.filter(i => i.deleted_at && (now - new Date(i.deleted_at).getTime()) <= thirtyDaysMs);
-
-      document.getElementById('non-admin-delete-counter').textContent =
-        currentRole === 'ADMIN' ? 'Admin Mode: Unlimited Restore & Purge' : `Non-Admin Other-Item Deletes Used: ${getNonAdminOtherDeleteCount()} / 5`;
-
-      const container = document.getElementById('trash-list');
-      if (!trashed.length) {
-        container.innerHTML = `<div class="col-span-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">Trash bin is empty.</div>`;
-        return;
-      }
-
-      container.innerHTML = trashed.map(item => {
-        const daysLeft = Math.max(0, Math.ceil((thirtyDaysMs - (now - new Date(item.deleted_at).getTime())) / (24 * 60 * 60 * 1000)));
-        return `
-          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
-            <div class="font-bold text-sm text-white">${item.title} <span class="font-mono text-xs text-amber-400">[${item.sku}]</span></div>
-            <p class="text-xs text-slate-400">Deleted by ${item.deleted_by || 'User'} • ${daysLeft} days left</p>
-            <div class="flex gap-2 pt-2">
-              <button onclick="restoreItem('${item.id}')" class="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg">Restore</button>
-              ${currentRole === 'ADMIN' ? `<button onclick="purgeItem('${item.id}')" class="text-xs bg-red-700 text-white px-3 py-1 rounded-lg">Purge</button>` : ''}
-            </div>
+      const trashed = state.items.filter(i => Boolean(i.deleted_at));
+      document.getElementById('non-admin-delete-counter').textContent = currentRole === 'ADMIN' ? 'Admin Mode: Unlimited Restore & Purge' : `Non-Admin Other-Item Deletes: ${getNonAdminOtherDeleteCount()} / 5`;
+      document.getElementById('trash-list').innerHTML = trashed.map(item => `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
+          <div class="font-bold text-sm text-white">${item.title} [${item.sku}]</div>
+          <div class="flex gap-2">
+            <button onclick="restoreItem('${item.id}')" class="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg">Restore</button>
+            ${currentRole === 'ADMIN' ? `<button onclick="purgeItem('${item.id}')" class="text-xs bg-red-700 text-white px-3 py-1 rounded-lg">Purge</button>` : ''}
           </div>
-        `;
-      }).join('');
+        </div>
+      `).join('') || `<div class="col-span-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">Trash bin is empty.</div>`;
     }
 
-    // =========================================================================
-    // VIEW 9: ADMIN HUB (TYPES, CUSTOM FIELDS, SHOWS, ADMIN-ONLY EXPORTS)
-    // =========================================================================
     function renderAdmin() {
       const isAdmin = currentRole === 'ADMIN';
       document.getElementById('admin-guard-msg').classList.toggle('hidden', isAdmin);
       document.getElementById('admin-panel-content').classList.toggle('hidden', !isAdmin);
       if (!isAdmin) return;
-
-      document.getElementById('admin-types-list').innerHTML = state.itemTypes.map(t => `
-        <span class="text-xs bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg text-slate-200">
-          ${t.label} <span class="text-slate-400">(${t.default_print_copies}x label${t.is_consumable ? ', Supply' : ''})</span>
-        </span>
-      `).join('');
-
-      document.getElementById('admin-custom-fields-list').innerHTML = state.customFields.map(f => `
-        <div class="bg-slate-800/60 px-3 py-1.5 rounded border border-slate-700 flex justify-between">
-          <span><strong>${f.department_code}</strong>: ${f.field_label} (${f.input_type})</span>
-        </div>
-      `).join('') || '<p class="text-slate-500">No custom spec fields added yet.</p>';
-
-      document.getElementById('admin-shows-list').innerHTML = state.shows.map(s => `
-        <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg text-amber-300">${s.title} ${s.season_year ? '(' + s.season_year + ')' : ''}</span>
-      `).join('');
+      document.getElementById('admin-types-list').innerHTML = state.itemTypes.map(t => `<span class="text-xs bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg text-slate-200">${t.label}</span>`).join('');
+      document.getElementById('admin-custom-fields-list').innerHTML = state.customFields.map(f => `<div class="bg-slate-800/60 px-3 py-1.5 rounded border border-slate-700"><strong>${f.department_code}</strong>: ${f.field_label}</div>`).join('');
+      document.getElementById('admin-shows-list').innerHTML = state.shows.map(s => `<span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg text-amber-300">${s.title}</span>`).join('');
     }
 
     async function addCustomItemType() {
-      if (currentRole !== 'ADMIN') return;
       const label = document.getElementById('new-type-label').value.trim();
       if (!label) return;
-      const code = label.toUpperCase().replace(/[^A-Z0-9]+/g, '_');
-      const parentId = document.getElementById('new-type-parent').value || null;
-      const copies = Number(document.getElementById('new-type-copies').value || 1);
-      const isConsumable = document.getElementById('new-type-consumable').checked;
-
       await sb.from('item_types').insert({
-        code,
-        label,
-        parent_type_id: parentId,
-        default_print_copies: copies,
-        is_consumable: isConsumable
+        code: label.toUpperCase().replace(/[^A-Z0-9]+/g, '_'), label,
+        parent_type_id: document.getElementById('new-type-parent').value || null,
+        default_print_copies: Number(document.getElementById('new-type-copies').value || 1),
+        is_consumable: document.getElementById('new-type-consumable').checked
       });
       document.getElementById('new-type-label').value = '';
       await loadAllData();
     }
 
     async function addCustomFieldDef() {
-      if (currentRole !== 'ADMIN') return;
-      const dept = document.getElementById('custom-field-dept').value;
       const label = document.getElementById('custom-field-label').value.trim();
-      const type = document.getElementById('custom-field-type').value;
       if (!label) return;
-      const key = label.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-
       await sb.from('custom_field_defs').insert({
-        department_code: dept,
-        field_key: key,
-        field_label: label,
-        input_type: type
+        department_code: document.getElementById('custom-field-dept').value,
+        field_key: label.toLowerCase().replace(/[^a-z0-9]+/g, '_'),
+        field_label: label, input_type: document.getElementById('custom-field-type').value
       });
       document.getElementById('custom-field-label').value = '';
       await loadAllData();
     }
 
     async function addShow() {
-      if (currentRole !== 'ADMIN') return;
       const title = document.getElementById('new-show-title').value.trim();
-      const season = document.getElementById('new-show-season').value.trim();
       if (!title) return;
-      await sb.from('shows').insert({ title, season_year: season });
+      await sb.from('shows').insert({ title, season_year: document.getElementById('new-show-season').value.trim() });
       document.getElementById('new-show-title').value = '';
       await loadAllData();
     }
 
     function exportCatalogJSON() {
-      if (currentRole !== 'ADMIN') return alert('Only Admins can download JSON exports.');
-      const payload = {
-        exported_at: new Date().toISOString(),
-        items: state.items,
-        item_types: state.itemTypes,
-        locations: state.locations,
-        shows: state.shows,
-        item_shows: state.itemShows,
-        lists: state.lists,
-        list_items: state.listItems,
-        repairs: state.repairs
-      };
-      downloadBlob(JSON.stringify(payload, null, 2), `offsquare-inventory-${Date.now()}.json`, 'application/json');
+      if (currentRole !== 'ADMIN') return;
+      downloadBlob(JSON.stringify({ exported_at: new Date().toISOString(), ...state }, null, 2), `offsquare-inventory-${Date.now()}.json`, 'application/json');
     }
 
     function exportCatalogCSV() {
-      if (currentRole !== 'ADMIN') return alert('Only Admins can export the catalog.');
-      const headers = ['sku', 'title', 'department', 'subtype_code', 'is_consumable', 'borrow_rent_mode', 'readiness_status', 'quantity_total', 'location'];
-      const lines = [headers.join(',')];
-      state.items.filter(i => !i.deleted_at).forEach(i => {
-        lines.push([
-          i.sku,
-          `"${(i.title || '').replace(/"/g, '""')}"`,
-          i.department || '',
-          i.subtype_code || '',
-          i.is_consumable,
-          i.borrow_rent_mode || '',
-          i.readiness_status || '',
-          i.quantity_total ?? 1,
-          `"${getFullLocationPath(i.location_id).replace(/"/g, '""')}"`
-        ].join(','));
-      });
+      if (currentRole !== 'ADMIN') return;
+      const lines = ['sku,title,department,location'];
+      state.items.filter(i => !i.deleted_at).forEach(i => lines.push(`${i.sku},"${(i.title || '').replace(/"/g, '""')}",${i.department || ''},"${getFullLocationPath(i.location_id)}"`));
       downloadBlob(lines.join('\n'), `offsquare-catalog-${Date.now()}.csv`, 'text/csv');
     }
 
     function downloadBlob(content, filename, mime) {
-      const blob = new Blob([content], { type: mime });
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
+      a.href = URL.createObjectURL(new Blob([content], { type: mime }));
       a.download = filename;
       a.click();
     }
 
     // =========================================================================
-    // ITEM MODAL, PHOTO COMPRESSION & SAVE HANDLERS
+    // CATALOG ITEM MODAL & DROPDOWNS
     // =========================================================================
     function populateDropdowns() {
       const topTypes = state.itemTypes.filter(t => !t.parent_type_id);
       const assetTypes = topTypes.filter(t => !t.is_consumable);
 
-      document.getElementById('filter-dept').innerHTML =
-        `<option value="ALL">All Asset Types</option>` +
-        assetTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
+      document.getElementById('filter-dept').innerHTML = `<option value="ALL">All Asset Types</option>` + assetTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
+      document.getElementById('item-dept').innerHTML = assetTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
+      document.getElementById('new-type-parent').innerHTML = `<option value="">Top-Level Category</option>` + topTypes.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+      document.getElementById('custom-field-dept').innerHTML = topTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
 
-      document.getElementById('item-dept').innerHTML =
-        topTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
-
-      document.getElementById('new-type-parent').innerHTML =
-        `<option value="">Top-Level Category</option>` +
-        topTypes.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
-
-      document.getElementById('custom-field-dept').innerHTML =
-        topTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
-
-      const locOpts = `<option value="">Unassigned</option>` +
-        state.locations.map(l => `<option value="${l.id}">${getFullLocationPath(l.id)}</option>`).join('');
+      const locOpts = `<option value="">Unassigned</option>` + state.locations.map(l => `<option value="${l.id}">${getFullLocationPath(l.id)}</option>`).join('');
       document.getElementById('item-location').innerHTML = locOpts;
-      document.getElementById('scan-target-location').innerHTML =
-        `<option value="">Inspect / Audit Only (No Move)</option>` +
-        state.locations.map(l => `<option value="${l.id}">Move To: ${getFullLocationPath(l.id)}</option>`).join('');
+      document.getElementById('supply-location').innerHTML = locOpts;
+      document.getElementById('scan-target-location').innerHTML = `<option value="">Inspect / Audit Only (No Move)</option>` + state.locations.map(l => `<option value="${l.id}">Move To: ${getFullLocationPath(l.id)}</option>`).join('');
 
-      document.getElementById('filter-show').innerHTML =
-        `<option value="ALL">All Shows</option>` +
-        state.shows.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
-
-      document.getElementById('list-show-id').innerHTML =
-        `<option value="">Optional: Tie to Production / Show</option>` +
-        state.shows.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
-
-      document.getElementById('repair-item-id').innerHTML =
-        state.items.filter(i => !i.deleted_at).map(i => `<option value="${i.id}">[${i.sku}] ${i.title}</option>`).join('');
-
-      document.getElementById('item-parent-bundle').innerHTML =
-        `<option value="">Standalone Item (Not part of a parent bundle)</option>` +
-        state.items.filter(i => !i.deleted_at && !i.is_consumable).map(i => `<option value="${i.id}">[${i.sku}] ${i.title}</option>`).join('');
+      document.getElementById('filter-show').innerHTML = `<option value="ALL">All Shows</option>` + state.shows.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+      document.getElementById('list-show-id').innerHTML = `<option value="">Optional: Tie to Production / Show</option>` + state.shows.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+      document.getElementById('repair-item-id').innerHTML = state.items.filter(i => !i.deleted_at).map(i => `<option value="${i.id}">[${i.sku}] ${i.title}</option>`).join('');
     }
 
     function buildColorPicker() {
-      const row = document.getElementById('color-picker-row');
-      row.innerHTML = PALETTE.map(c => `
+      document.getElementById('color-picker-row').innerHTML = PALETTE.map(c => `
         <button type="button" data-color="${c.name}" onclick="toggleColor('${c.name}')"
           class="color-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200">
           <span class="w-3 h-3 rounded-full border border-white/30" style="background:${c.hex}"></span>
@@ -1829,8 +1966,7 @@
 
     function syncColorPickerUI() {
       document.querySelectorAll('.color-btn').forEach(btn => {
-        const name = btn.dataset.color;
-        const idx = state.selectedColors.indexOf(name);
+        const idx = state.selectedColors.indexOf(btn.dataset.color);
         btn.classList.toggle('border-amber-400', idx >= 0);
         btn.classList.toggle('ring-2', idx === 0);
         btn.classList.toggle('ring-amber-400', idx === 0);
@@ -1841,27 +1977,20 @@
       const deptCode = document.getElementById('item-dept').value;
       const parentObj = state.itemTypes.find(t => t.code === deptCode);
       const subs = parentObj ? state.itemTypes.filter(t => t.parent_type_id === parentObj.id) : [];
-
-      document.getElementById('item-subtype').innerHTML =
-        `<option value="">None / Standard</option>` +
-        subs.map(s => `<option value="${s.code}">${s.label}</option>`).join('');
-
-      // Hide Shows Used In for universal HARDWARE_TOOLS
+      document.getElementById('item-subtype').innerHTML = `<option value="">None / Standard</option>` + subs.map(s => `<option value="${s.code}">${s.label}</option>`).join('');
       document.getElementById('shows-used-section').classList.toggle('hidden', deptCode === 'HARDWARE_TOOLS');
-
-      if (parentObj) {
-        document.getElementById('item-is-consumable').checked = Boolean(parentObj.is_consumable);
-        if (parentObj.default_print_copies >= 2) {
-          document.getElementById('item-is-large').checked = true;
-          document.getElementById('item-print-copies').value = 2;
-        }
+      if (parentObj && parentObj.default_print_copies >= 2) {
+        document.getElementById('item-is-large').checked = true;
+        document.getElementById('item-print-copies').value = 2;
       }
-      renderDynamicSpecFields(deptCode, existingSpecs);
+      const fields = state.customFields.filter(f => f.department_code === deptCode);
+      document.getElementById('dynamic-specs-container').innerHTML = fields.length
+        ? fields.map(f => `<div><label class="block text-xs text-slate-400 mb-1">${f.field_label}</label><input data-spec-key="${f.field_key}" type="${f.input_type === 'number' ? 'number' : 'text'}" value="${existingSpecs[f.field_key] || ''}" class="spec-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" /></div>`).join('')
+        : `<div class="col-span-full text-xs text-slate-500">No extra custom spec fields for ${deptCode}.</div>`;
     }
 
     function onItemSubtypeChange() {
-      const subCode = document.getElementById('item-subtype').value;
-      const subObj = state.itemTypes.find(t => t.code === subCode);
+      const subObj = state.itemTypes.find(t => t.code === document.getElementById('item-subtype').value);
       if (subObj && subObj.default_print_copies >= 2) {
         document.getElementById('item-is-large').checked = true;
         document.getElementById('item-print-copies').value = 2;
@@ -1869,102 +1998,75 @@
     }
 
     function updateDefaultCopiesFromFlags() {
-      const isLarge = document.getElementById('item-is-large').checked;
-      document.getElementById('item-print-copies').value = isLarge ? 2 : 1;
-    }
-
-    function renderDynamicSpecFields(deptCode, existingSpecs) {
-      const fields = state.customFields.filter(f => f.department_code === deptCode);
-      const container = document.getElementById('dynamic-specs-container');
-      if (!fields.length) {
-        container.innerHTML = `<div class="col-span-full text-xs text-slate-500">No extra custom spec fields defined for ${deptCode} (Admins can add fields in Admin tab).</div>`;
-        return;
-      }
-      container.innerHTML = fields.map(f => `
-        <div>
-          <label class="block text-xs text-slate-400 mb-1">${f.field_label}</label>
-          <input data-spec-key="${f.field_key}" type="${f.input_type === 'number' ? 'number' : 'text'}" value="${existingSpecs[f.field_key] || ''}"
-            class="spec-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" />
-        </div>
-      `).join('');
+      document.getElementById('item-print-copies').value = document.getElementById('item-is-large').checked ? 2 : 1;
     }
 
     function renderExistingPhotosPreview() {
-      const container = document.getElementById('item-existing-photos');
-      if (!state.selectedPhotos.length) {
-        container.innerHTML = '';
-        return;
-      }
-      container.innerHTML = state.selectedPhotos.map((url, idx) => `
-        <div class="relative group w-16 h-16 rounded-lg overflow-hidden border-2 ${idx === 0 ? 'border-amber-400' : 'border-slate-700'}">
-          <img src="${url}" onclick="setCoverPhoto(${idx})" title="Click to set as Cover Photo" class="w-full h-full object-cover cursor-pointer" />
+      document.getElementById('item-existing-photos').innerHTML = state.selectedPhotos.map((url, idx) => `
+        <div class="relative w-16 h-16 rounded-lg overflow-hidden border-2 ${idx === 0 ? 'border-amber-400' : 'border-slate-700'}">
+          <img src="${url}" onclick="setCoverPhoto(${idx})" class="w-full h-full object-cover cursor-pointer" />
           <button type="button" onclick="removePhoto(${idx})" class="absolute top-0 right-0 bg-black/80 text-red-400 text-xs px-1">&times;</button>
         </div>
       `).join('');
     }
 
     function setCoverPhoto(idx) {
-      if (idx <= 0 || idx >= state.selectedPhotos.length) return;
+      if (idx <= 0) return;
       const [chosen] = state.selectedPhotos.splice(idx, 1);
       state.selectedPhotos.unshift(chosen);
       renderExistingPhotosPreview();
     }
 
-    function removePhoto(idx) {
-      state.selectedPhotos.splice(idx, 1);
-      renderExistingPhotosPreview();
-    }
+    function removePhoto(idx) { state.selectedPhotos.splice(idx, 1); renderExistingPhotosPreview(); }
 
-    function openItemModal(itemId = null, forceConsumable = false) {
+    function openItemModal(itemId = null) {
       const item = itemId ? state.items.find(i => i.id === itemId) : null;
       document.getElementById('edit-item-id').value = item ? item.id : '';
       document.getElementById('item-title').value = item ? item.title : '';
       document.getElementById('item-sku').value = item ? item.sku : generateCleanSku();
-      document.getElementById('item-dept').value = item ? item.department : (forceConsumable ? 'CONSUMABLES' : 'PROPS');
+      document.getElementById('item-dept').value = item ? item.department : 'PROPS';
       onItemDeptChange(item ? (item.specifications || {}) : {});
-
       if (item && item.subtype_code) document.getElementById('item-subtype').value = item.subtype_code;
       document.getElementById('item-location').value = item ? (item.location_id || '') : '';
       document.getElementById('item-borrow-rent').value = item ? (item.borrow_rent_mode || 'INTERNAL_ONLY') : 'INTERNAL_ONLY';
       document.getElementById('item-readiness').value = item ? (item.readiness_status || 'READY_FOR_STAGE') : 'READY_FOR_STAGE';
       document.getElementById('item-qty').value = item ? (item.quantity_total ?? 1) : 1;
-      document.getElementById('item-low-threshold').value = item && item.low_stock_threshold != null ? item.low_stock_threshold : '';
       document.getElementById('item-ownership').value = item ? (item.ownership_source || 'OWNED') : 'OWNED';
       document.getElementById('item-value').value = item && item.replacement_value != null ? item.replacement_value : '';
-      document.getElementById('item-parent-bundle').value = item ? (item.parent_item_id || '') : '';
-      document.getElementById('item-is-consumable').checked = item ? Boolean(item.is_consumable) : forceConsumable;
       document.getElementById('item-is-large').checked = item ? Boolean(item.is_large_object) : false;
       document.getElementById('item-print-queued').checked = item ? Boolean(item.print_queued) : false;
       document.getElementById('item-print-copies').value = item ? (item.print_copies || 1) : 1;
-      document.getElementById('item-notes').value = item ? (item.notes || '') : '';
+      document.getElementById('item-notes').value = item ? (item.description || item.notes || '') : '';
       document.getElementById('item-photo-files').value = '';
+
+      // Delete button visible ONLY when editing an existing item, at the bottom of the Edit Modal
+      document.getElementById('btn-delete-in-edit').classList.toggle('hidden', !item);
 
       state.selectedColors = item && Array.isArray(item.colors) ? [...item.colors] : [];
       syncColorPickerUI();
 
-      state.selectedPhotos = item && Array.isArray(item.photo_urls)
-        ? [...item.photo_urls]
-        : (item && item.photo_url ? [item.photo_url] : []);
+      state.selectedPhotos = item && Array.isArray(item.photo_urls) ? [...item.photo_urls] : (item && item.photo_url ? [item.photo_url] : []);
       renderExistingPhotosPreview();
 
       const flags = item && Array.isArray(item.safety_flags) ? item.safety_flags : [];
-      document.querySelectorAll('.safety-flag').forEach(cb => {
-        cb.checked = flags.includes(cb.value);
-      });
+      document.querySelectorAll('.safety-flag').forEach(cb => { cb.checked = flags.includes(cb.value); });
 
-      const linkedShowIds = item
-        ? state.itemShows.filter(is => is.item_id === item.id).map(is => is.show_id)
-        : [];
-      document.getElementById('item-shows-checkboxes').innerHTML = state.shows.length
-        ? state.shows.map(s => `
-            <label class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 cursor-pointer">
-              <input type="checkbox" value="${s.id}" ${linkedShowIds.includes(s.id) ? 'checked' : ''} class="item-show-cb accent-amber-500" />
-              <span>${s.title}</span>
-            </label>
-          `).join('')
-        : '<span class="text-slate-500">No productions added yet (add shows in Admin).</span>';
+      const linkedShowIds = item ? state.itemShows.filter(is => is.item_id === item.id).map(is => is.show_id) : [];
+      document.getElementById('item-shows-checkboxes').innerHTML = state.shows.map(s => `
+        <label class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 cursor-pointer">
+          <input type="checkbox" value="${s.id}" ${linkedShowIds.includes(s.id) ? 'checked' : ''} class="item-show-cb accent-amber-500" />
+          <span>${s.title}</span>
+        </label>
+      `).join('') || '<span class="text-slate-500">No productions added yet.</span>';
 
       document.getElementById('item-modal').classList.remove('hidden');
+    }
+
+    async function deleteFromEditModal() {
+      const id = document.getElementById('edit-item-id').value;
+      if (!id) return;
+      closeModal('item-modal');
+      await softDeleteItem(id);
     }
 
     async function compressImageToJpegBlob(file, maxDim = 1280, quality = 0.8) {
@@ -1973,17 +2075,11 @@
         img.onload = () => {
           let { width, height } = img;
           if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
+            if (width > height) { height = Math.round((height * maxDim) / width); width = maxDim; }
+            else { width = Math.round((width * maxDim) / height); height = maxDim; }
           }
           const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = width; canvas.height = height;
           canvas.getContext('2d').drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
         };
@@ -1998,63 +2094,48 @@
       if (!title) return alert('Item Title is required.');
 
       const btn = document.getElementById('btn-save-item');
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
+      btn.disabled = true; btn.textContent = 'Saving...';
 
       try {
-        // Upload any newly selected photos sequentially
         const files = Array.from(document.getElementById('item-photo-files').files || []);
         const uploadedUrls = [...state.selectedPhotos];
         for (let i = 0; i < files.length; i++) {
           const compressed = await compressImageToJpegBlob(files[i]);
           const path = `${sku}/${Date.now()}-${i}.jpg`;
-          const { error: upErr } = await sb.storage.from('item-photos').upload(path, compressed, {
-            contentType: 'image/jpeg',
-            upsert: true
-          });
+          const { error: upErr } = await sb.storage.from('item-photos').upload(path, compressed, { contentType: 'image/jpeg', upsert: true });
           if (!upErr) {
             const { data: pub } = sb.storage.from('item-photos').getPublicUrl(path);
-            if (pub && pub.publicUrl) uploadedUrls.push(pub.publicUrl);
+            if (pub?.publicUrl) uploadedUrls.push(pub.publicUrl);
           }
         }
 
         const specs = {};
-        document.querySelectorAll('.spec-input').forEach(inp => {
-          if (inp.value.trim() !== '') specs[inp.dataset.specKey] = inp.value.trim();
-        });
-
-        const safetyFlags = Array.from(document.querySelectorAll('.safety-flag:checked')).map(cb => cb.value);
-        const lowThreshRaw = document.getElementById('item-low-threshold').value;
-        const valRaw = document.getElementById('item-value').value;
+        document.querySelectorAll('.spec-input').forEach(inp => { if (inp.value.trim() !== '') specs[inp.dataset.specKey] = inp.value.trim(); });
+        const descText = document.getElementById('item-notes').value.trim() || null;
 
         const payload = {
-          title,
-          sku,
-          department,
-          item_type_code: department,
+          title, sku, department, item_type_code: department,
           subtype_code: document.getElementById('item-subtype').value || null,
           location_id: document.getElementById('item-location').value || null,
           borrow_rent_mode: document.getElementById('item-borrow-rent').value,
           readiness_status: document.getElementById('item-readiness').value,
           quantity_total: Number(document.getElementById('item-qty').value || 1),
-          low_stock_threshold: lowThreshRaw !== '' ? Number(lowThreshRaw) : null,
           ownership_source: document.getElementById('item-ownership').value,
-          replacement_value: valRaw !== '' ? Number(valRaw) : null,
-          parent_item_id: document.getElementById('item-parent-bundle').value || null,
-          is_consumable: document.getElementById('item-is-consumable').checked,
+          replacement_value: document.getElementById('item-value').value !== '' ? Number(document.getElementById('item-value').value) : null,
+          is_consumable: false,
           is_large_object: document.getElementById('item-is-large').checked,
           print_queued: document.getElementById('item-print-queued').checked,
           print_copies: Number(document.getElementById('item-print-copies').value || 1),
           colors: state.selectedColors,
-          safety_flags: safetyFlags,
+          safety_flags: Array.from(document.querySelectorAll('.safety-flag:checked')).map(cb => cb.value),
           specifications: specs,
           photo_urls: uploadedUrls,
-          notes: document.getElementById('item-notes').value.trim() || null
+          description: descText,
+          notes: descText
         };
 
         const editId = document.getElementById('edit-item-id').value;
         let savedItemId = editId;
-
         if (editId) {
           const { error } = await sb.from('items').update(payload).eq('id', editId);
           if (error) throw error;
@@ -2064,17 +2145,11 @@
           savedItemId = inserted.id;
         }
 
-        // Sync Shows Used In (unless HARDWARE_TOOLS)
         if (savedItemId) {
           await sb.from('item_shows').delete().eq('item_id', savedItemId);
           if (department !== 'HARDWARE_TOOLS') {
-            const checkedShows = Array.from(document.querySelectorAll('.item-show-cb:checked')).map(cb => ({
-              item_id: savedItemId,
-              show_id: cb.value
-            }));
-            if (checkedShows.length) {
-              await sb.from('item_shows').insert(checkedShows);
-            }
+            const checkedShows = Array.from(document.querySelectorAll('.item-show-cb:checked')).map(cb => ({ item_id: savedItemId, show_id: cb.value }));
+            if (checkedShows.length) await sb.from('item_shows').insert(checkedShows);
           }
         }
 
@@ -2083,18 +2158,12 @@
       } catch (err) {
         alert(`Error saving item: ${err.message}`);
       } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save Item';
+        btn.disabled = false; btn.textContent = 'Save Catalog Item';
       }
     }
 
-    function openSettingsModal() {
-      document.getElementById('settings-modal').classList.remove('hidden');
-    }
-
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
+    function openSettingsModal() { document.getElementById('settings-modal').classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
   </script>
 </body>
 </html>
