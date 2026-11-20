@@ -3,14 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Off Square Theatre Co. — Production Inventory & Shop Manager</title>
+  <title>Off Square Theatre Co. — Inventory &amp; Shop Manager</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
+    :root {
+      --bg-base: #000000;
+      --bg-surface: #0b0b0b;
+      --bg-elevated: #141414;
+      --border-gold: rgba(250, 204, 21, 0.35);
+      --border-subtle: #262626;
+      --gold: #facc15;
+      --gold-bright: #fde047;
+    }
     body {
-      background-color: #0f172a;
-      color: #f8fafc;
+      background-color: var(--bg-base);
+      color: #ffffff;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     @media print {
@@ -22,65 +31,65 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-black text-white">
 
   <!-- TOP HEADER -->
-  <header class="no-print bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+  <header class="no-print bg-[#080808] border-b border-yellow-500/30 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-lg shadow">OS</div>
+        <div class="w-9 h-9 rounded-lg bg-yellow-400 text-black font-black flex items-center justify-center text-base">OS</div>
         <div>
           <h1 class="font-bold text-base sm:text-lg tracking-tight text-white leading-tight">Off Square Theatre Co.</h1>
-          <p class="text-xs text-slate-400">Production Inventory, Space Maps &amp; Shop Manager</p>
+          <p class="text-xs text-yellow-300/80">Production Inventory &amp; Shop Manager</p>
         </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <div class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400">User:</span>
-          <input id="user-name-input" onchange="changeUserName(this.value)" type="text" class="w-24 bg-transparent text-xs font-semibold text-white focus:outline-none border-b border-slate-600" />
+        <div class="flex items-center gap-1.5 bg-[#141414] px-2.5 py-1.5 rounded-lg border border-neutral-800">
+          <span class="text-xs text-neutral-400">User:</span>
+          <input id="user-name-input" onchange="changeUserName(this.value)" type="text" class="w-24 bg-transparent text-xs font-semibold text-white focus:outline-none border-b border-neutral-700" />
         </div>
-        <div class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700">
-          <span class="text-xs text-slate-400">Role:</span>
-          <select id="role-select" onchange="changeRole(this.value)" class="bg-transparent text-xs font-semibold text-amber-400 focus:outline-none">
-            <option value="ADMIN" class="bg-slate-900">Admin (Shop Lead)</option>
-            <option value="TECH" class="bg-slate-900">Tech Crew</option>
-            <option value="DESIGNER" class="bg-slate-900">Director / Designer</option>
-            <option value="GUEST" class="bg-slate-900">Guest / Borrower-Renter</option>
+        <div class="flex items-center gap-1.5 bg-[#141414] px-2.5 py-1.5 rounded-lg border border-neutral-800">
+          <span class="text-xs text-neutral-400">Role:</span>
+          <select id="role-select" onchange="changeRole(this.value)" class="bg-[#141414] text-xs font-semibold text-yellow-400 focus:outline-none">
+            <option value="ADMIN">Admin</option>
+            <option value="TECH">Tech Crew</option>
+            <option value="DESIGNER">Director / Designer</option>
+            <option value="GUEST">Guest / Borrower-Renter</option>
           </select>
         </div>
-        <button onclick="openSettingsModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">DB Config</button>
-        <button onclick="openItemModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-1.5 rounded-lg shadow">+ New Catalog Item</button>
+        <button onclick="openSettingsModal()" class="text-xs bg-[#141414] hover:bg-neutral-900 text-white px-3 py-1.5 rounded-lg border border-neutral-700">DB Config</button>
+        <button onclick="openItemModal()" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-3.5 py-1.5 rounded-lg">+ New Item</button>
       </div>
     </div>
 
-    <!-- PRIMARY NAVIGATION TABS -->
-    <nav class="max-w-7xl mx-auto px-4 flex overflow-x-auto gap-1 border-t border-slate-800/80 pt-1">
-      <button onclick="switchTab('catalog')" id="tab-catalog" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-amber-500 text-amber-400 whitespace-nowrap">
+    <!-- NAVIGATION TABS -->
+    <nav class="max-w-7xl mx-auto px-4 flex overflow-x-auto gap-1 border-t border-neutral-900 pt-1">
+      <button onclick="switchTab('catalog')" id="tab-catalog" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-bold border-b-2 border-yellow-400 text-yellow-400 whitespace-nowrap">
         Catalog (<span id="count-catalog">0</span>)
       </button>
-      <button onclick="switchTab('supplies')" id="tab-supplies" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
+      <button onclick="switchTab('supplies')" id="tab-supplies" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
         Supplies (<span id="count-supplies">0</span>)
       </button>
-      <button onclick="switchTab('lists')" id="tab-lists" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
+      <button onclick="switchTab('locations')" id="tab-locations" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
+        Locations (<span id="count-locations">0</span>)
+      </button>
+      <button onclick="switchTab('lists')" id="tab-lists" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
         Borrow / Rent Lists (<span id="count-lists">0</span>)
       </button>
-      <button onclick="switchTab('print')" id="tab-print" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
-        Label Print Queue (<span id="count-print">0</span>)
+      <button onclick="switchTab('print')" id="tab-print" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
+        Label Queue (<span id="count-print">0</span>)
       </button>
-      <button onclick="switchTab('maps')" id="tab-maps" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
-        Space Maps &amp; Locations
-      </button>
-      <button onclick="switchTab('repairs')" id="tab-repairs" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
+      <button onclick="switchTab('repairs')" id="tab-repairs" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
         Repairs (<span id="count-repairs">0</span>)
       </button>
-      <button onclick="switchTab('audit')" id="tab-audit" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
+      <button onclick="switchTab('audit')" id="tab-audit" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
         Scan &amp; Audit
       </button>
-      <button onclick="switchTab('trash')" id="tab-trash" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
+      <button onclick="switchTab('trash')" id="tab-trash" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
         30-Day Trash (<span id="count-trash">0</span>)
       </button>
-      <button onclick="switchTab('admin')" id="tab-admin" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white whitespace-nowrap">
+      <button onclick="switchTab('admin')" id="tab-admin" class="nav-tab px-3.5 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-neutral-400 hover:text-white whitespace-nowrap">
         Admin
       </button>
     </nav>
@@ -89,29 +98,29 @@
   <!-- MAIN WORKSPACE -->
   <main class="no-print flex-1 max-w-7xl w-full mx-auto px-4 py-6">
 
-    <!-- ==================== 1. CATALOG (READ-ONLY CARDS + MINI-MAPS) ==================== -->
+    <!-- ==================== 1. CATALOG ==================== -->
     <section id="view-catalog" class="view-section space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center gap-3">
+      <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4 flex flex-wrap items-center gap-3">
         <input id="search-catalog" oninput="renderCatalog()" type="text" placeholder="Search title, 6-digit SKU, color, show, or description..."
-          class="flex-1 min-w-[220px] bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-500" />
-        <select id="filter-dept" onchange="renderCatalog()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+          class="flex-1 min-w-[220px] bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-yellow-400" />
+        <select id="filter-dept" onchange="renderCatalog()" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
           <option value="ALL">All Asset Types</option>
         </select>
-        <select id="filter-borrow-rent" onchange="renderCatalog()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-          <option value="ALL">All Borrow / Rent Modes</option>
+        <select id="filter-borrow-rent" onchange="renderCatalog()" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
+          <option value="ALL">All Borrow / Rent</option>
           <option value="BORROW">Borrowable</option>
           <option value="RENT">Rentable</option>
           <option value="BOTH">Borrow or Rent</option>
           <option value="INTERNAL_ONLY">Internal Only</option>
         </select>
-        <select id="filter-readiness" onchange="renderCatalog()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+        <select id="filter-readiness" onchange="renderCatalog()" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
           <option value="ALL">All Readiness</option>
           <option value="READY_FOR_STAGE">Ready for Stage</option>
           <option value="REHEARSAL">Rehearsal / Placeholder</option>
           <option value="PULLED">In Transit / Pulled</option>
           <option value="HOLD_REPAIR">Hold / Needs Repair</option>
         </select>
-        <select id="filter-show" onchange="renderCatalog()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+        <select id="filter-show" onchange="renderCatalog()" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
           <option value="ALL">All Shows</option>
         </select>
       </div>
@@ -119,164 +128,104 @@
       <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
     </section>
 
-    <!-- ==================== 2. SUPPLIES (SEPARATE TAB & SEPARATE ADD MODAL) ==================== -->
+    <!-- ==================== 2. SUPPLIES (SEPARATE TAB & ADD MODAL) ==================== -->
     <section id="view-supplies" class="view-section hidden space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4">
         <div>
           <h2 class="text-lg font-bold text-white">Shop Supplies &amp; Consumables</h2>
-          <p class="text-xs text-slate-400">Dedicated tracker for paint, screws, fabric, gaff tape, and shop hardware — kept separate from production assets.</p>
+          <p class="text-xs text-neutral-400">Separate from catalog assets — track paint, fasteners, fabric, tape, and shop stock.</p>
         </div>
         <div class="flex items-center gap-2">
-          <label class="flex items-center gap-2 text-xs bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 cursor-pointer">
-            <input id="filter-low-stock" type="checkbox" onchange="renderSupplies()" class="accent-amber-500" />
+          <label class="flex items-center gap-2 text-xs bg-black px-3 py-2 rounded-lg border border-neutral-700 cursor-pointer">
+            <input id="filter-low-stock" type="checkbox" onchange="renderSupplies()" class="accent-yellow-400" />
             <span>Low Stock Only</span>
           </label>
-          <button onclick="openSupplyModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg shadow">
+          <button onclick="openSupplyModal()" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-lg">
             + Add Supply Item
           </button>
         </div>
       </div>
 
-      <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-x-auto">
+      <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl overflow-x-auto">
         <table class="w-full text-left text-sm">
-          <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
+          <thead class="bg-[#141414] text-xs uppercase text-yellow-400 border-b border-neutral-800">
             <tr>
               <th class="px-4 py-3">Supply / SKU</th>
-              <th class="px-4 py-3">Supply Type</th>
-              <th class="px-4 py-3">Shelf / Location</th>
+              <th class="px-4 py-3">Category</th>
+              <th class="px-4 py-3">Building / Location / Sub-Location</th>
               <th class="px-4 py-3">In Stock</th>
               <th class="px-4 py-3">Low Alert</th>
-              <th class="px-4 py-3 text-right">Actions</th>
+              <th class="px-4 py-3 text-right">Edit</th>
             </tr>
           </thead>
-          <tbody id="supplies-tbody" class="divide-y divide-slate-800"></tbody>
+          <tbody id="supplies-tbody" class="divide-y divide-neutral-900"></tbody>
         </table>
       </div>
     </section>
 
-    <!-- ==================== 3. BORROW / RENT LISTS & TECH PULL LISTS ==================== -->
-    <section id="view-lists" class="view-section hidden space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <!-- ==================== 3. LOCATIONS & SUB-LOCATION NESTING ==================== -->
+    <section id="view-locations" class="view-section hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4">
         <div>
-          <h2 class="text-lg font-bold text-white">Borrow / Rent Lists &amp; Tech Pull Lists</h2>
-          <p class="text-xs text-slate-400">Named lists tagged Borrow or Rent, with digital check-off mode and printable QR pull sheets.</p>
+          <h2 class="text-lg font-bold text-white">Buildings, Locations &amp; Nested Sub-Locations</h2>
+          <p class="text-xs text-neutral-400">Organize buildings, rooms/zones, and nested sub-locations (racks, shelves, bins, cages).</p>
         </div>
-        <button onclick="openNewListModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">
+        <button onclick="openLocationModal()" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-lg">
+          + Add Location / Sub-Location
+        </button>
+      </div>
+
+      <div id="locations-hierarchy-list" class="space-y-2"></div>
+    </section>
+
+    <!-- ==================== 4. BORROW / RENT LISTS ==================== -->
+    <section id="view-lists" class="view-section hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4">
+        <div>
+          <h2 class="text-lg font-bold text-white">Borrow / Rent Lists &amp; Pull Sheets</h2>
+          <p class="text-xs text-neutral-400">Named lists tagged Borrow or Rent, with digital pull check-off and printable QR pull sheets.</p>
+        </div>
+        <button onclick="openNewListModal()" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-3.5 py-2 rounded-lg">
           + New Borrow / Rent List
         </button>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div id="lists-sidebar" class="space-y-2"></div>
-        <div id="active-list-panel" class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5">
-          <p class="text-sm text-slate-400">Select or create a list on the left to manage items, check off a digital pull, or print a QR pull sheet.</p>
+        <div id="active-list-panel" class="lg:col-span-2 bg-[#0b0b0b] border border-neutral-800 rounded-xl p-5">
+          <p class="text-sm text-neutral-400">Select or create a list on the left.</p>
         </div>
       </div>
     </section>
 
-    <!-- ==================== 4. LABEL PRINT QUEUE ==================== -->
+    <!-- ==================== 5. LABEL PRINT QUEUE ==================== -->
     <section id="view-print" class="view-section hidden space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4">
         <div>
           <h2 class="text-lg font-bold text-white">Label Printer Queue</h2>
-          <p class="text-xs text-slate-400">Flats, bins, and large objects default to 2 copies. Labels show general Site &amp; Place (no rack/shelf/bin) plus QR &amp; 6-digit SKU.</p>
+          <p class="text-xs text-neutral-400">Flats, bins, and large objects default to 2 copies. Labels show general location plus QR &amp; 6-digit SKU.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button onclick="printQueuedLabels()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg shadow">
-            Print All Queued Labels
-          </button>
-          <button onclick="clearPrintQueue()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg border border-slate-700">
-            Clear Queue
-          </button>
+          <button onclick="printQueuedLabels()" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-lg">Print All Queued Labels</button>
+          <button onclick="clearPrintQueue()" class="text-xs bg-[#141414] hover:bg-neutral-800 text-white px-3 py-2 rounded-lg border border-neutral-700">Clear Queue</button>
         </div>
       </div>
-
       <div id="print-queue-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    </section>
-
-    <!-- ==================== 5. INTERACTIVE VECTOR SPACE MAPS & LOCATIONS ==================== -->
-    <section id="view-maps" class="view-section hidden space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-white">Vector Space Maps &amp; Location Hierarchy</h2>
-          <p class="text-xs text-slate-400">Select a Building &amp; Floor, drag on the vector canvas to draw rooms/sub-rooms, or click to drop shelf location dots.</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <select id="map-building-select" onchange="onMapBuildingChange()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"></select>
-          <button onclick="addNewBuildingPrompt()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 px-2.5 py-1.5 rounded-lg border border-slate-700">+ Building</button>
-          <select id="map-floor-select" onchange="renderSpaceMap()" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
-            <option value="1">Floor 1</option>
-            <option value="2">Floor 2 / Loft</option>
-            <option value="0">Basement / Lower</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Vector Drawing Mode Toolbar -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <button onclick="setMapTool('SELECT')" id="tool-SELECT" class="map-tool-btn text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg">
-            Select / Inspect
-          </button>
-          <button onclick="setMapTool('DRAW_ROOM')" id="tool-DRAW_ROOM" class="map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
-            + Draw Room (Drag)
-          </button>
-          <button onclick="setMapTool('DRAW_SUBROOM')" id="tool-DRAW_SUBROOM" class="map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
-            + Draw Sub-Room / Overlap (Drag)
-          </button>
-          <button onclick="setMapTool('DROP_DOT')" id="tool-DROP_DOT" class="map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
-            + Drop Shelf / Rack Dot (Click)
-          </button>
-        </div>
-        <span id="map-tool-hint" class="text-xs text-slate-400">Click any room or shelf dot to inspect or edit.</span>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <!-- Interactive Vector SVG Floorplan -->
-        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-3">
-          <svg id="vector-floorplan" viewBox="0 0 1000 620" class="w-full h-[460px] bg-slate-950 border border-slate-800 rounded-lg select-none cursor-crosshair">
-            <defs>
-              <pattern id="floor-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="1" />
-              </pattern>
-            </defs>
-            <rect width="1000" height="620" fill="url(#floor-grid)" />
-            <g id="svg-rooms-layer"></g>
-            <g id="svg-dots-layer"></g>
-            <rect id="svg-drag-preview" x="0" y="0" width="0" height="0" fill="rgba(245, 158, 11, 0.25)" stroke="#f59e0b" stroke-width="2" stroke-dasharray="6 4" class="hidden pointer-events-none" />
-          </svg>
-        </div>
-
-        <!-- Location & Sub-Location Tree + Inspector -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4 max-h-[490px] overflow-y-auto">
-          <div id="location-inspector" class="space-y-2 border-b border-slate-800 pb-3">
-            <h3 class="font-bold text-xs text-amber-400 uppercase tracking-wider">Location &amp; Sub-Location Inspector</h3>
-            <p class="text-xs text-slate-400">Draw a room, drop a shelf dot, or select any location below to manage rooms, sub-locations, and shelves.</p>
-          </div>
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <h4 class="font-bold text-xs text-slate-300 uppercase">All Locations on This Building/Floor</h4>
-              <button onclick="openLocationModal()" class="text-[11px] text-amber-400 hover:underline">+ Quick Add Text Location</button>
-            </div>
-            <div id="locations-tree-list" class="space-y-1.5"></div>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- ==================== 6. REPAIRS ==================== -->
     <section id="view-repairs" class="view-section hidden space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4">
         <div>
-          <h2 class="text-lg font-bold text-white">Repairs &amp; Maintenance (By Item Type)</h2>
-          <p class="text-xs text-slate-400">Linked to catalog items, prioritized, and grouped by item department/type.</p>
+          <h2 class="text-lg font-bold text-white">Repairs (Grouped by Item Type)</h2>
+          <p class="text-xs text-neutral-400">Prioritized repair tickets linked to catalog items.</p>
         </div>
         <div class="flex items-center gap-2">
-          <label class="flex items-center gap-2 text-xs bg-slate-800 px-3 py-2 rounded-lg border border-slate-700 cursor-pointer">
-            <input id="hide-resolved-repairs" type="checkbox" checked onchange="renderRepairs()" class="accent-amber-500" />
+          <label class="flex items-center gap-2 text-xs bg-black px-3 py-2 rounded-lg border border-neutral-700 cursor-pointer">
+            <input id="hide-resolved-repairs" type="checkbox" checked onchange="renderRepairs()" class="accent-yellow-400" />
             <span>Hide Resolved</span>
           </label>
-          <button onclick="openRepairModal()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">+ Log Item Repair</button>
+          <button onclick="openRepairModal()" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-3.5 py-2 rounded-lg">+ Log Repair</button>
         </div>
       </div>
       <div id="repairs-grouped-container" class="space-y-6"></div>
@@ -284,93 +233,114 @@
 
     <!-- ==================== 7. SCAN & AUDIT ==================== -->
     <section id="view-audit" class="view-section hidden space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+      <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-5 space-y-4">
         <div>
-          <h2 class="text-lg font-bold text-white">Quick Scan-to-Move &amp; Room Spot-Check Audit</h2>
-          <p class="text-xs text-slate-400">Scan or enter a 6-digit SKU to reassign location immediately or verify rack contents.</p>
+          <h2 class="text-lg font-bold text-white">Scan-to-Move &amp; Audit</h2>
+          <p class="text-xs text-neutral-400">Enter or scan a 6-digit SKU to move or verify its location.</p>
         </div>
         <div class="flex flex-wrap gap-3">
           <input id="scan-sku-input" onkeydown="if(event.key==='Enter') handleQuickScan()" type="text" placeholder="Scan or enter 6-digit SKU..."
-            class="flex-1 min-w-[200px] bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
-          <select id="scan-target-location" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-            <option value="">Inspect / Audit Only (No Move)</option>
+            class="flex-1 min-w-[200px] bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
+          <select id="scan-target-location" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
+            <option value="">Inspect Only (No Move)</option>
           </select>
-          <button onclick="handleQuickScan()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">Process Scan</button>
+          <button onclick="handleQuickScan()" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs px-4 py-2 rounded-lg">Process Scan</button>
         </div>
         <div id="scan-audit-log" class="space-y-2 pt-2"></div>
       </div>
     </section>
 
-    <!-- ==================== 8. 30-DAY TRASH BIN ==================== -->
+    <!-- ==================== 8. 30-DAY TRASH ==================== -->
     <section id="view-trash" class="view-section hidden space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="text-lg font-bold text-white">30-Day Soft-Delete Trash Bin</h2>
-          <p class="text-xs text-slate-400">Non-admins may delete up to 5 items created by others. Admins can restore or permanently purge any item.</p>
+          <h2 class="text-lg font-bold text-white">30-Day Trash Bin</h2>
+          <p class="text-xs text-neutral-400">Non-admins can delete up to 5 items created by others. Admins can restore or permanently purge.</p>
         </div>
-        <span id="non-admin-delete-counter" class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg text-slate-300 border border-slate-700"></span>
+        <span id="non-admin-delete-counter" class="text-xs bg-black px-3 py-1.5 rounded-lg text-yellow-300 border border-neutral-800"></span>
       </div>
       <div id="trash-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
     </section>
 
-    <!-- ==================== 9. ADMIN HUB ==================== -->
+    <!-- ==================== 9. ADMIN (ALL DEFINITIONS + PICKABLE NAMED COLORS) ==================== -->
     <section id="view-admin" class="view-section hidden space-y-6">
-      <div id="admin-guard-msg" class="hidden bg-red-950/60 border border-red-800 text-red-200 rounded-xl p-4 text-sm">
-        Admin role required to manage item types, custom fields, and catalog exports.
+      <div id="admin-guard-msg" class="hidden bg-[#141414] border border-yellow-500/40 text-yellow-300 rounded-xl p-4 text-sm">
+        Switch Role to Admin to edit definitions, colors, and exports.
       </div>
 
       <div id="admin-panel-content" class="space-y-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
+        <!-- Exports -->
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 class="font-bold text-base text-white">Catalog &amp; Backup Exports (Admin Only)</h3>
-            <p class="text-xs text-slate-400">Download complete JSON snapshot or CSV spreadsheet for offline backup and migration.</p>
+            <h3 class="font-bold text-base text-white">Data Exports</h3>
+            <p class="text-xs text-neutral-400">Download full JSON or CSV backup.</p>
           </div>
           <div class="flex gap-2">
-            <button onclick="exportCatalogJSON()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2 rounded-lg">Download Full JSON</button>
-            <button onclick="exportCatalogCSV()" class="text-xs bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg border border-slate-700">Export Catalog CSV</button>
+            <button onclick="exportCatalogJSON()" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-lg">Download JSON</button>
+            <button onclick="exportCatalogCSV()" class="text-xs bg-[#141414] hover:bg-neutral-800 text-white px-4 py-2 rounded-lg border border-neutral-700">Export CSV</button>
           </div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-          <h3 class="font-bold text-base text-white">Manage Item Types &amp; Subtypes</h3>
+        <!-- Pickable Color + Assign Name -->
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-5 space-y-4">
+          <div>
+            <h3 class="font-bold text-base text-white">Color Palette Definitions (Pick Color &amp; Assign Name)</h3>
+            <p class="text-xs text-neutral-400">Pick any color swatch, type a name (e.g. "Burgundy", "Champagne Gold"), and add it to the item color picker.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <input id="new-color-hex" type="color" value="#eab308" class="w-12 h-10 bg-black border border-neutral-700 rounded cursor-pointer p-0.5" />
+            <input id="new-color-name" type="text" placeholder="Color Name (e.g. Aged Gold)"
+              class="flex-1 min-w-[200px] bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
+            <button onclick="addCustomColorDefinition()" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs px-4 py-2.5 rounded-lg">
+              + Save Color
+            </button>
+          </div>
+          <div id="admin-colors-list" class="flex flex-wrap gap-2 pt-1"></div>
+        </div>
+
+        <!-- Item Types & Subtypes -->
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-5 space-y-4">
+          <h3 class="font-bold text-base text-white">Item Types &amp; Subtypes</h3>
           <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-            <input id="new-type-label" type="text" placeholder="Display Name (e.g. Puppets)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
-            <select id="new-type-parent" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
-              <option value="">Top-Level Category</option>
+            <input id="new-type-label" type="text" placeholder="Type Name (e.g. Puppets)" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
+            <select id="new-type-parent" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white">
+              <option value="">Top-Level Type</option>
             </select>
-            <select id="new-type-copies" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            <select id="new-type-copies" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white">
               <option value="1">Default 1 Label Copy</option>
-              <option value="2">Default 2 Label Copies (Flat/Bin/Large)</option>
+              <option value="2">Default 2 Label Copies</option>
             </select>
-            <label class="flex items-center gap-2 text-xs bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
-              <input id="new-type-consumable" type="checkbox" class="accent-amber-500" />
-              <span>Consumable (Supplies)</span>
+            <label class="flex items-center gap-2 text-xs bg-black px-3 py-2 rounded-lg border border-neutral-700">
+              <input id="new-type-consumable" type="checkbox" class="accent-yellow-400" />
+              <span>Supply / Consumable</span>
             </label>
-            <button onclick="addCustomItemType()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">+ Add Type</button>
+            <button onclick="addCustomItemType()" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs px-4 py-2 rounded-lg">+ Add Type</button>
           </div>
-          <div id="admin-types-list" class="flex flex-wrap gap-2 pt-2"></div>
+          <div id="admin-types-list" class="flex flex-wrap gap-2 pt-1"></div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-          <h3 class="font-bold text-base text-white">Custom Specification Fields (By Department)</h3>
+        <!-- Custom Specification Fields -->
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-5 space-y-4">
+          <h3 class="font-bold text-base text-white">Custom Specification Fields</h3>
           <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <select id="custom-field-dept" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"></select>
-            <input id="custom-field-label" type="text" placeholder="Field Label (e.g. Chest / Bust)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
-            <select id="custom-field-type" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+            <select id="custom-field-dept" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white"></select>
+            <input id="custom-field-label" type="text" placeholder="Field Label (e.g. Chest / Bust)" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
+            <select id="custom-field-type" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white">
               <option value="text">Text</option>
               <option value="number">Number</option>
             </select>
-            <button onclick="addCustomFieldDef()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">+ Add Spec Field</button>
+            <button onclick="addCustomFieldDef()" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs px-4 py-2 rounded-lg">+ Add Field</button>
           </div>
-          <div id="admin-custom-fields-list" class="space-y-1 text-xs text-slate-300"></div>
+          <div id="admin-custom-fields-list" class="space-y-1 text-xs text-white"></div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+        <!-- Productions / Shows -->
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-5 space-y-4">
           <h3 class="font-bold text-base text-white">Productions / Shows</h3>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input id="new-show-title" type="text" placeholder="Show Title (e.g. Something Rotten!)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
-            <input id="new-show-season" type="text" placeholder="Season / Year (e.g. 2026)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
-            <button onclick="addShow()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-lg">+ Add Production</button>
+            <input id="new-show-title" type="text" placeholder="Show Title" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
+            <input id="new-show-season" type="text" placeholder="Season / Year" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
+            <button onclick="addShow()" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs px-4 py-2 rounded-lg">+ Add Show</button>
           </div>
           <div id="admin-shows-list" class="flex flex-wrap gap-2"></div>
         </div>
@@ -378,113 +348,103 @@
     </section>
   </main>
 
-  <!-- DEDICATED PRINT OUTPUT CONTAINER -->
+  <!-- PRINT OUTPUT -->
   <div id="print-area" class="hidden p-4 bg-white text-black"></div>
 
-  <!-- ==================== READ-ONLY ITEM DETAIL MODAL (BROWSE WITHOUT EDITING) ==================== -->
-  <div id="item-detail-modal" class="no-print hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full p-6 space-y-5 my-8 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-start justify-between gap-4 border-b border-slate-800 pb-3">
+  <!-- ==================== READ-ONLY ITEM DETAIL MODAL ==================== -->
+  <div id="item-detail-modal" class="no-print hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#0b0b0b] border border-yellow-500/40 rounded-2xl max-w-2xl w-full p-6 space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-4 border-b border-neutral-800 pb-3">
         <div>
           <div class="flex items-center gap-2">
-            <span id="detail-sku" class="font-mono text-xs font-bold bg-amber-500/20 text-amber-400 px-2.5 py-0.5 rounded border border-amber-500/40"></span>
-            <span id="detail-dept" class="text-xs font-semibold text-slate-400 uppercase"></span>
+            <span id="detail-sku" class="font-mono text-xs font-bold bg-yellow-400 text-black px-2.5 py-0.5 rounded"></span>
+            <span id="detail-dept" class="text-xs font-semibold text-yellow-300 uppercase"></span>
           </div>
-          <h3 id="detail-title" class="text-xl font-bold text-white mt-1"></h3>
+          <h3 id="detail-title" class="text-xl font-bold text-white mt-1.5"></h3>
         </div>
-        <button onclick="closeModal('item-detail-modal')" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+        <button onclick="closeModal('item-detail-modal')" class="text-neutral-400 hover:text-white text-2xl leading-none">&times;</button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <!-- Left: Photo Gallery + Description + Tags -->
-        <div class="space-y-4">
-          <div id="detail-main-photo" class="h-56 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden"></div>
-          <div id="detail-thumbs" class="flex flex-wrap gap-2"></div>
-          <div>
-            <h4 class="text-xs font-bold uppercase text-slate-400 mb-1">Description &amp; Notes</h4>
-            <p id="detail-description" class="text-sm text-slate-200 leading-relaxed"></p>
-          </div>
-          <div id="detail-tags" class="flex flex-wrap gap-1.5"></div>
-          <div id="detail-specs" class="text-xs text-slate-300 space-y-1 bg-slate-950/60 p-3 rounded-xl border border-slate-800"></div>
-        </div>
+      <div id="detail-main-photo" class="h-60 bg-black rounded-xl border border-neutral-800 flex items-center justify-center overflow-hidden"></div>
+      <div id="detail-thumbs" class="flex flex-wrap gap-2"></div>
 
-        <!-- Right: Vector Space Map Pinpointing Room & Shelf Dot + Quick Actions -->
-        <div class="space-y-4">
-          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold uppercase text-amber-400">Storage Space Map</span>
-              <span id="detail-location-path" class="text-[11px] text-slate-300"></span>
-            </div>
-            <div id="detail-mini-map" class="w-full h-52 bg-slate-900 rounded-lg overflow-hidden border border-slate-800"></div>
-          </div>
+      <div>
+        <h4 class="text-xs font-bold uppercase text-yellow-400 mb-1">Description</h4>
+        <p id="detail-description" class="text-sm text-white leading-relaxed"></p>
+      </div>
 
-          <!-- Action Buttons: Add to List, Quick Check-Out, Edit -->
-          <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4 space-y-2.5">
-            <button id="detail-btn-add-list" class="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs py-2.5 px-4 rounded-lg">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-              Add to Active Borrow / Rent List
-            </button>
-            <button id="detail-btn-checkout" class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 px-4 rounded-lg">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-              Quick Check-Out (Mark Pulled / Checked Out)
-            </button>
-            <button id="detail-btn-edit" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold text-xs py-2.5 px-4 rounded-lg border border-slate-600">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-              Edit Item Details
-            </button>
-          </div>
-        </div>
+      <div class="bg-black border border-neutral-800 rounded-xl p-3 text-xs">
+        <span class="text-yellow-400 font-bold uppercase">Location:</span>
+        <span id="detail-location-path" class="text-white ml-1.5"></span>
+      </div>
+
+      <div id="detail-tags" class="flex flex-wrap gap-1.5"></div>
+      <div id="detail-specs" class="text-xs text-white space-y-1 bg-black p-3 rounded-xl border border-neutral-800"></div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-neutral-800">
+        <button id="detail-btn-add-list" class="flex items-center gap-2 bg-[#141414] hover:bg-neutral-800 text-yellow-400 font-bold text-xs py-2.5 px-4 rounded-lg border border-yellow-500/40">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          <span>Add to List</span>
+        </button>
+        <button id="detail-btn-checkout" class="flex items-center gap-2 bg-[#141414] hover:bg-neutral-800 text-white font-bold text-xs py-2.5 px-4 rounded-lg border border-neutral-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <span>Check Out</span>
+        </button>
+        <button id="detail-btn-edit" class="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs py-2.5 px-4 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          <span>Edit Item</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== CATALOG ITEM ADD / EDIT MODAL (DELETE AT BOTTOM) ==================== -->
-  <div id="item-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 id="item-modal-title" class="text-lg font-bold text-white">Add / Edit Catalog Asset</h3>
-        <button onclick="closeModal('item-modal')" class="text-slate-400 hover:text-white text-xl">&times;</button>
+  <!-- ==================== CATALOG ITEM ADD / EDIT MODAL (DELETE ONLY AT BOTTOM) ==================== -->
+  <div id="item-modal" class="no-print hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#0b0b0b] border border-yellow-500/40 rounded-2xl max-w-2xl w-full p-6 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-3">
+        <h3 id="item-modal-title" class="text-lg font-bold text-white">Add / Edit Catalog Item</h3>
+        <button onclick="closeModal('item-modal')" class="text-neutral-400 hover:text-white text-xl">&times;</button>
       </div>
 
       <input type="hidden" id="edit-item-id" />
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div class="sm:col-span-2">
-          <label class="block text-xs text-slate-400 mb-1">Item Title *</label>
-          <input id="item-title" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+          <label class="block text-xs text-neutral-300 mb-1">Item Title *</label>
+          <input id="item-title" type="text" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">6-Digit SKU (Auto-Filtered)</label>
+          <label class="block text-xs text-neutral-300 mb-1">6-Digit SKU</label>
           <div class="flex gap-1.5">
-            <input id="item-sku" type="text" maxlength="6" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-amber-400" />
-            <button type="button" onclick="rollCleanSku()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-lg text-xs">Roll</button>
+            <input id="item-sku" type="text" maxlength="6" class="flex-1 bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm font-mono text-yellow-400" />
+            <button type="button" onclick="rollCleanSku()" class="bg-[#141414] hover:bg-neutral-800 border border-neutral-700 px-3 py-2 rounded-lg text-xs text-white">Roll</button>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Department / Type *</label>
-          <select id="item-dept" onchange="onItemDeptChange()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
+          <label class="block text-xs text-neutral-300 mb-1">Item Type *</label>
+          <select id="item-dept" onchange="onItemDeptChange()" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></select>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Subtype</label>
-          <select id="item-subtype" onchange="onItemSubtypeChange()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+          <label class="block text-xs text-neutral-300 mb-1">Subtype</label>
+          <select id="item-subtype" onchange="onItemSubtypeChange()" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
             <option value="">None / Standard</option>
           </select>
         </div>
 
         <div>
           <div class="flex items-center justify-between mb-1">
-            <label class="text-xs text-slate-400">Location (Building / Room / Shelf Dot)</label>
-            <button type="button" onclick="openLocationModal()" class="text-[11px] text-amber-400 hover:underline">+ Add Location</button>
+            <label class="text-xs text-neutral-300">Location / Sub-Location</label>
+            <button type="button" onclick="openLocationModal()" class="text-xs text-yellow-400 hover:underline">+ Add Location</button>
           </div>
-          <select id="item-location" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
+          <select id="item-location" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></select>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Borrow vs. Rent Eligibility</label>
-          <select id="item-borrow-rent" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+          <label class="block text-xs text-neutral-300 mb-1">Borrow / Rent Mode</label>
+          <select id="item-borrow-rent" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
             <option value="INTERNAL_ONLY">Internal Only</option>
             <option value="BORROW">Borrowable</option>
             <option value="RENT">Rentable</option>
@@ -493,8 +453,8 @@
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Stage Readiness Status</label>
-          <select id="item-readiness" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+          <label class="block text-xs text-neutral-300 mb-1">Readiness Status</label>
+          <select id="item-readiness" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
             <option value="READY_FOR_STAGE">Ready for Stage</option>
             <option value="REHEARSAL">Rehearsal / Placeholder</option>
             <option value="PULLED">In Transit / Pulled</option>
@@ -503,264 +463,261 @@
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Quantity</label>
-          <input id="item-qty" type="number" min="1" value="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+          <label class="block text-xs text-neutral-300 mb-1">Quantity</label>
+          <input id="item-qty" type="number" min="1" value="1" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Ownership &amp; Replacement Value ($)</label>
+          <label class="block text-xs text-neutral-300 mb-1">Ownership &amp; Value ($)</label>
           <div class="flex gap-2">
-            <select id="item-ownership" class="w-1/2 bg-slate-800 border border-slate-700 rounded-lg px-2 py-2 text-xs text-white">
+            <select id="item-ownership" class="w-1/2 bg-black border border-neutral-700 rounded-lg px-2 py-2 text-xs text-white">
               <option value="OWNED">Owned</option>
               <option value="BUILT_FOR_SHOW">Built for Show</option>
               <option value="DONATED">Donated</option>
               <option value="LONG_TERM_LOAN">Long-Term Loan</option>
             </select>
-            <input id="item-value" type="number" step="0.01" placeholder="Value $" class="w-1/2 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+            <input id="item-value" type="number" step="0.01" placeholder="Value $" class="w-1/2 bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
           </div>
         </div>
       </div>
 
       <div id="shows-used-section">
-        <label class="block text-xs text-slate-400 mb-1">Shows Used In</label>
-        <div id="item-shows-checkboxes" class="flex flex-wrap gap-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-xs"></div>
+        <label class="block text-xs text-neutral-300 mb-1">Shows Used In</label>
+        <div id="item-shows-checkboxes" class="flex flex-wrap gap-2 bg-black p-2.5 rounded-xl border border-neutral-800 text-xs"></div>
       </div>
 
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Colors (First selected color is Dominant)</label>
+        <label class="block text-xs text-neutral-300 mb-1">Colors (First selected is Dominant)</label>
         <div id="color-picker-row" class="flex flex-wrap gap-2"></div>
       </div>
 
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Safety, Rigging &amp; Care Flags</label>
+        <label class="block text-xs text-neutral-300 mb-1">Tags &amp; Care Flags</label>
         <div class="flex flex-wrap gap-2 text-xs">
-          <label class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700"><input type="checkbox" value="BREAKAWAY_FRAGILE" class="safety-flag accent-amber-500" /> Breakaway / Fragile</label>
-          <label class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700"><input type="checkbox" value="PROP_WEAPON" class="safety-flag accent-amber-500" /> Prop Weapon</label>
-          <label class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700"><input type="checkbox" value="RIGGING_RATED" class="safety-flag accent-amber-500" /> Rigging / Overhead</label>
-          <label class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-lg border border-slate-700"><input type="checkbox" value="DRY_CLEAN_ONLY" class="safety-flag accent-amber-500" /> Dry Clean Only</label>
+          <label class="flex items-center gap-1.5 bg-black px-2.5 py-1.5 rounded-lg border border-neutral-700"><input type="checkbox" value="BREAKAWAY_FRAGILE" class="safety-flag accent-yellow-400" /> Breakaway / Fragile</label>
+          <label class="flex items-center gap-1.5 bg-black px-2.5 py-1.5 rounded-lg border border-neutral-700"><input type="checkbox" value="PROP_WEAPON" class="safety-flag accent-yellow-400" /> Prop Weapon</label>
+          <label class="flex items-center gap-1.5 bg-black px-2.5 py-1.5 rounded-lg border border-neutral-700"><input type="checkbox" value="RIGGING_RATED" class="safety-flag accent-yellow-400" /> Rigging / Overhead</label>
+          <label class="flex items-center gap-1.5 bg-black px-2.5 py-1.5 rounded-lg border border-neutral-700"><input type="checkbox" value="DRY_CLEAN_ONLY" class="safety-flag accent-yellow-400" /> Dry Clean Only</label>
         </div>
       </div>
 
-      <div id="dynamic-specs-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800"></div>
+      <div id="dynamic-specs-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black p-3 rounded-xl border border-neutral-800"></div>
 
-      <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3">
+      <div class="bg-[#141414] p-3 rounded-xl border border-neutral-800 flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-4 text-xs">
           <label class="flex items-center gap-1.5 cursor-pointer">
-            <input id="item-is-large" type="checkbox" onchange="updateDefaultCopiesFromFlags()" class="accent-amber-500" />
+            <input id="item-is-large" type="checkbox" onchange="updateDefaultCopiesFromFlags()" class="accent-yellow-400" />
             <span>Flat / Bin / Large Object (2 Labels)</span>
           </label>
           <label class="flex items-center gap-1.5 cursor-pointer">
-            <input id="item-print-queued" type="checkbox" class="accent-amber-500" />
-            <span class="text-amber-400 font-semibold">Queue for Label Printer</span>
+            <input id="item-print-queued" type="checkbox" class="accent-yellow-400" />
+            <span class="text-yellow-400 font-semibold">Queue Label Print</span>
           </label>
         </div>
         <div class="flex items-center gap-1.5 text-xs">
-          <span class="text-slate-400">Copies:</span>
-          <input id="item-print-copies" type="number" min="1" max="20" value="1" class="w-14 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-center text-white" />
+          <span class="text-neutral-400">Copies:</span>
+          <input id="item-print-copies" type="number" min="1" max="20" value="1" class="w-14 bg-black border border-neutral-700 rounded px-2 py-1 text-center text-white" />
         </div>
       </div>
 
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Photos (Click thumbnail to set as Cover Photo)</label>
-        <input id="item-photo-files" type="file" accept="image/*" multiple class="text-xs text-slate-300" />
+        <label class="block text-xs text-neutral-300 mb-1">Photos (Click thumbnail for Cover)</label>
+        <input id="item-photo-files" type="file" accept="image/*" multiple class="text-xs text-neutral-300" />
         <div id="item-existing-photos" class="flex flex-wrap gap-2 mt-2"></div>
       </div>
 
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Description &amp; Notes</label>
-        <textarea id="item-notes" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
+        <label class="block text-xs text-neutral-300 mb-1">Description</label>
+        <textarea id="item-notes" rows="2" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
       </div>
 
-      <!-- Footer with Delete Only inside Edit Modal at Bottom -->
-      <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-800">
-        <button id="btn-delete-in-edit" type="button" onclick="deleteFromEditModal()" class="hidden flex items-center gap-1.5 px-3.5 py-2 text-xs bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded-lg">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+      <!-- Delete ONLY inside Edit Modal at the bottom -->
+      <div class="flex items-center justify-between gap-2 pt-3 border-t border-neutral-800">
+        <button id="btn-delete-in-edit" type="button" onclick="deleteFromEditModal()" class="hidden px-3.5 py-2 text-xs bg-black hover:bg-neutral-900 text-red-400 border border-red-500/40 rounded-lg font-semibold">
           Move to 30-Day Trash
         </button>
         <div class="flex gap-2 ml-auto">
-          <button onclick="closeModal('item-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
-          <button id="btn-save-item" onclick="saveItem()" class="px-5 py-2 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg">Save Catalog Item</button>
+          <button onclick="closeModal('item-modal')" class="px-4 py-2 text-xs bg-[#141414] text-white rounded-lg border border-neutral-700">Cancel</button>
+          <button id="btn-save-item" onclick="saveItem()" class="px-5 py-2 text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-lg">Save Item</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== SEPARATE SUPPLY ITEM ADD / EDIT MODAL ==================== -->
-  <div id="supply-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 id="supply-modal-title" class="text-lg font-bold text-white">Add / Edit Shop Supply</h3>
-        <button onclick="closeModal('supply-modal')" class="text-slate-400 hover:text-white text-xl">&times;</button>
+  <!-- ==================== SEPARATE SUPPLY ADD / EDIT MODAL ==================== -->
+  <div id="supply-modal" class="no-print hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+    <div class="bg-[#0b0b0b] border border-yellow-500/40 rounded-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-3">
+        <h3 class="text-lg font-bold text-white">Add / Edit Supply Item</h3>
+        <button onclick="closeModal('supply-modal')" class="text-neutral-400 hover:text-white text-xl">&times;</button>
       </div>
       <input type="hidden" id="edit-supply-id" />
       <div class="space-y-3">
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Supply Name * (e.g. Black Scenic Paint 1 Gal, 1.5" Drywall Screws)</label>
-          <input id="supply-title" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+          <label class="block text-xs text-neutral-300 mb-1">Supply Name *</label>
+          <input id="supply-title" type="text" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
         </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Supply Category *</label>
-          <select id="supply-subtype" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
+          <label class="block text-xs text-neutral-300 mb-1">Supply Category *</label>
+          <select id="supply-subtype" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></select>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Current Quantity *</label>
-            <input id="supply-qty" type="number" min="0" value="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+            <label class="block text-xs text-neutral-300 mb-1">Quantity *</label>
+            <input id="supply-qty" type="number" min="0" value="1" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Low-Stock Alert At</label>
-            <input id="supply-threshold" type="number" min="0" placeholder="e.g. 2" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+            <label class="block text-xs text-neutral-300 mb-1">Low-Stock Alert At</label>
+            <input id="supply-threshold" type="number" min="0" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
           </div>
         </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Shelf / Bin Location</label>
-          <select id="supply-location" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
+          <label class="block text-xs text-neutral-300 mb-1">Building / Location / Sub-Location</label>
+          <select id="supply-location" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></select>
         </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Notes / Brand / Color Code</label>
-          <input id="supply-notes" type="text" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+          <label class="block text-xs text-neutral-300 mb-1">Notes</label>
+          <input id="supply-notes" type="text" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
         </div>
       </div>
-      <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-        <button id="btn-delete-supply" type="button" onclick="deleteSupplyFromModal()" class="hidden px-3 py-2 text-xs bg-red-950 text-red-200 border border-red-800 rounded-lg">Delete Supply</button>
-        <div class="flex gap-2 ml-auto">
-          <button onclick="closeModal('supply-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
-          <button onclick="saveSupplyItem()" class="px-5 py-2 text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg">Save Supply</button>
-        </div>
+      <div class="flex justify-end gap-2 pt-3 border-t border-neutral-800">
+        <button onclick="closeModal('supply-modal')" class="px-4 py-2 text-xs bg-[#141414] text-white rounded-lg border border-neutral-700">Cancel</button>
+        <button onclick="saveSupplyItem()" class="px-5 py-2 text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-lg">Save Supply</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== LOCATION & SUB-LOCATION MODAL ==================== -->
-  <div id="location-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-3">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+  <!-- ==================== CLEAN BUILDING / LOCATION / SUB-LOCATION MODAL ==================== -->
+  <div id="location-modal" class="no-print hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+    <div class="bg-[#0b0b0b] border border-yellow-500/40 rounded-2xl max-w-md w-full p-6 space-y-3">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2">
         <h3 class="font-bold text-white">Add / Edit Location or Sub-Location</h3>
-        <button onclick="closeModal('location-modal')" class="text-slate-400 hover:text-white">&times;</button>
+        <button onclick="closeModal('location-modal')" class="text-neutral-400 hover:text-white">&times;</button>
       </div>
       <input type="hidden" id="edit-loc-id" />
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Building / Site *</label>
-          <input id="loc-site" type="text" value="Main Bldg" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+          <label class="block text-xs text-neutral-300 mb-1">Building *</label>
+          <input id="loc-site" type="text" value="Main Building" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
         </div>
         <div>
-          <label class="block text-[11px] text-slate-400 mb-1">Floor *</label>
-          <select id="loc-floor" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
-            <option value="1">Floor 1</option>
-            <option value="2">Floor 2 / Loft</option>
-            <option value="0">Basement / Lower</option>
-          </select>
+          <label class="block text-xs text-neutral-300 mb-1">Floor</label>
+          <input id="loc-floor" type="number" value="1" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
         </div>
       </div>
       <div>
-        <label class="block text-[11px] text-slate-400 mb-1">Parent Room / Location (Optional — makes this a Sub-Location)</label>
-        <select id="loc-parent" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+        <label class="block text-xs text-neutral-300 mb-1">Parent Location (Nest as Sub-Location)</label>
+        <select id="loc-parent" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white">
           <option value="">None (Top-Level Room / Zone)</option>
         </select>
       </div>
       <div>
-        <label class="block text-[11px] text-slate-400 mb-1">Room / Zone Label *</label>
-        <input id="loc-place" type="text" placeholder="e.g. Paint Room, Costume Loft, Props Cage" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        <label class="block text-xs text-neutral-300 mb-1">Room / Zone Name *</label>
+        <input id="loc-place" type="text" placeholder="e.g. Scene Shop, Costume Loft" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
       </div>
       <div>
-        <label class="block text-[11px] text-slate-400 mb-1">Sub-Location / Rack / Shelf / Bin Name (Optional)</label>
-        <input id="loc-rack" type="text" placeholder="e.g. Rack B, Shelf 3, Bin 12" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        <label class="block text-xs text-neutral-300 mb-1">Sub-Location / Rack / Shelf / Bin</label>
+        <input id="loc-rack" type="text" placeholder="e.g. Shelf A, Bin 4" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModal('location-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
-        <button onclick="saveLocation()" class="px-4 py-2 text-xs bg-amber-500 text-slate-950 font-bold rounded-lg">Save Location</button>
+        <button onclick="closeModal('location-modal')" class="px-4 py-2 text-xs bg-[#141414] text-white rounded-lg border border-neutral-700">Cancel</button>
+        <button onclick="saveLocation()" class="px-4 py-2 text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold rounded-lg">Save Location</button>
       </div>
     </div>
   </div>
 
   <!-- REPAIR MODAL -->
-  <div id="repair-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 class="font-bold text-white">Log Item Repair / Maintenance</h3>
-        <button onclick="closeModal('repair-modal')" class="text-slate-400 hover:text-white">&times;</button>
+  <div id="repair-modal" class="no-print hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+    <div class="bg-[#0b0b0b] border border-yellow-500/40 rounded-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2">
+        <h3 class="font-bold text-white">Log Repair</h3>
+        <button onclick="closeModal('repair-modal')" class="text-neutral-400 hover:text-white">&times;</button>
       </div>
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Linked Catalog Item *</label>
-        <select id="repair-item-id" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></select>
+        <label class="block text-xs text-neutral-300 mb-1">Catalog Item *</label>
+        <select id="repair-item-id" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></select>
       </div>
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Priority *</label>
-        <select id="repair-priority" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-          <option value="CRITICAL">Critical (Safety / Show-Stopper)</option>
-          <option value="HIGH">High (Fix Before Next Pull)</option>
+        <label class="block text-xs text-neutral-300 mb-1">Priority *</label>
+        <select id="repair-priority" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
           <option value="NORMAL" selected>Normal</option>
-          <option value="LOW">Low (Cosmetic / Bench Queue)</option>
+          <option value="LOW">Low</option>
         </select>
       </div>
       <div>
-        <label class="block text-xs text-slate-400 mb-1">Issue Description *</label>
-        <textarea id="repair-desc" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
+        <label class="block text-xs text-neutral-300 mb-1">Description *</label>
+        <textarea id="repair-desc" rows="3" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
       </div>
       <div class="flex justify-end gap-2">
-        <button onclick="closeModal('repair-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
-        <button onclick="saveRepair()" class="px-4 py-2 text-xs bg-amber-500 text-slate-950 font-bold rounded-lg">Save Repair Ticket</button>
+        <button onclick="closeModal('repair-modal')" class="px-4 py-2 text-xs bg-[#141414] text-white rounded-lg border border-neutral-700">Cancel</button>
+        <button onclick="saveRepair()" class="px-4 py-2 text-xs bg-yellow-400 text-black font-bold rounded-lg">Save Repair</button>
       </div>
     </div>
   </div>
 
   <!-- NEW BORROW / RENT LIST MODAL -->
-  <div id="list-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-3">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+  <div id="list-modal" class="no-print hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+    <div class="bg-[#0b0b0b] border border-yellow-500/40 rounded-2xl max-w-md w-full p-6 space-y-3">
+      <div class="flex items-center justify-between border-b border-neutral-800 pb-2">
         <h3 class="font-bold text-white">Create Borrow / Rent List</h3>
-        <button onclick="closeModal('list-modal')" class="text-slate-400 hover:text-white">&times;</button>
+        <button onclick="closeModal('list-modal')" class="text-neutral-400 hover:text-white">&times;</button>
       </div>
-      <input id="list-name" type="text" placeholder="List Name (e.g. Act 1 Parlor Props)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
-      <select id="list-mode" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-        <option value="BORROW">Borrow (Internal Show / Partner Exchange)</option>
-        <option value="RENT">Rent (External / Fee-Based)</option>
+      <input id="list-name" type="text" placeholder="List Name" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
+      <select id="list-mode" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
+        <option value="BORROW">Borrow</option>
+        <option value="RENT">Rent</option>
       </select>
-      <select id="list-show-id" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-        <option value="">Optional: Tie to Production / Show</option>
+      <select id="list-show-id" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white">
+        <option value="">Optional: Show</option>
       </select>
-      <input id="list-contact" type="text" placeholder="Borrower / Renter Name & Contact" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" />
+      <input id="list-contact" type="text" placeholder="Borrower / Renter Contact" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white" />
       <div class="grid grid-cols-2 gap-2">
-        <input id="list-fee" type="number" step="0.01" placeholder="Rental Fee ($)" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
-        <input id="list-due" type="date" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+        <input id="list-fee" type="number" step="0.01" placeholder="Rental Fee ($)" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
+        <input id="list-due" type="date" class="bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
       </div>
-      <textarea id="list-notes" rows="2" placeholder="Notes for Tech Pull Crew..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
+      <textarea id="list-notes" rows="2" placeholder="Notes..." class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white"></textarea>
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModal('list-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Cancel</button>
-        <button onclick="createList()" class="px-4 py-2 text-xs bg-amber-500 text-slate-950 font-bold rounded-lg">Create List</button>
+        <button onclick="closeModal('list-modal')" class="px-4 py-2 text-xs bg-[#141414] text-white rounded-lg border border-neutral-700">Cancel</button>
+        <button onclick="createList()" class="px-4 py-2 text-xs bg-yellow-400 text-black font-bold rounded-lg">Create List</button>
       </div>
     </div>
   </div>
 
   <!-- DB SETTINGS MODAL -->
-  <div id="settings-modal" class="no-print hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-3">
-      <h3 class="font-bold text-white">Supabase / PostgreSQL Connection</h3>
-      <input id="cfg-url" type="text" placeholder="https://xxxx.supabase.co" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
-      <input id="cfg-key" type="password" placeholder="Supabase Anon Key" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+  <div id="settings-modal" class="no-print hidden fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
+    <div class="bg-[#0b0b0b] border border-yellow-500/40 rounded-2xl max-w-md w-full p-6 space-y-3">
+      <h3 class="font-bold text-white">Supabase Connection</h3>
+      <input id="cfg-url" type="text" placeholder="https://xxxx.supabase.co" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
+      <input id="cfg-key" type="password" placeholder="Supabase Anon Key" class="w-full bg-black border border-neutral-700 rounded-lg px-3 py-2 text-xs text-white" />
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeModal('settings-modal')" class="px-4 py-2 text-xs bg-slate-800 text-slate-300 rounded-lg">Close</button>
-        <button onclick="saveDbConfig()" class="px-4 py-2 text-xs bg-amber-500 text-slate-950 font-bold rounded-lg">Save &amp; Connect</button>
+        <button onclick="closeModal('settings-modal')" class="px-4 py-2 text-xs bg-[#141414] text-white rounded-lg border border-neutral-700">Close</button>
+        <button onclick="saveDbConfig()" class="px-4 py-2 text-xs bg-yellow-400 text-black font-bold rounded-lg">Save &amp; Connect</button>
       </div>
     </div>
   </div>
 
   <script>
-    // =========================================================================
-    // CONFIGURATION & STATE
-    // =========================================================================
     const DEFAULT_SUPABASE_URL = '';
     const DEFAULT_SUPABASE_ANON_KEY = '';
+
+    const DEFAULT_COLORS = [
+      { name: 'Black', hex: '#111111' },
+      { name: 'White', hex: '#ffffff' },
+      { name: 'Gold', hex: '#facc15' },
+      { name: 'Crimson', hex: '#dc2626' },
+      { name: 'Navy', hex: '#1e3a8a' },
+      { name: 'Forest', hex: '#14532d' },
+      { name: 'Brown', hex: '#78350f' },
+      { name: 'Silver', hex: '#9ca3af' }
+    ];
 
     let sb = null;
     let currentRole = localStorage.getItem('ost_role') || 'ADMIN';
     let currentUserName = localStorage.getItem('ost_user') || 'Shop User';
     let activeTab = 'catalog';
     let activeListId = null;
-    let mapTool = 'SELECT';
-    let isDrawingMap = false;
-    let dragStartSvg = null;
 
     let state = {
       items: [],
@@ -772,44 +729,20 @@
       listItems: [],
       repairs: [],
       customFields: [],
+      palette: JSON.parse(localStorage.getItem('ost_custom_colors') || 'null') || [...DEFAULT_COLORS],
       selectedColors: [],
       selectedPhotos: []
     };
 
-    const PALETTE = [
-      { name: 'Black', hex: '#111827' },
-      { name: 'White', hex: '#f8fafc' },
-      { name: 'Burgundy', hex: '#7f1d1d' },
-      { name: 'Red', hex: '#dc2626' },
-      { name: 'Navy', hex: '#1e3a8a' },
-      { name: 'Blue', hex: '#2563eb' },
-      { name: 'Forest', hex: '#14532d' },
-      { name: 'Gold', hex: '#eab308' },
-      { name: 'Brown', hex: '#78350f' },
-      { name: 'Gray', hex: '#64748b' }
-    ];
-
     const BLOCKED_STEMS = ['fuck','shit','cunt','bitch','ass','dick','cock','piss','slut','whore','nigg','fag','rape','nazi','porn','xxx','666','420','69'];
 
-    // =========================================================================
-    // INITIALIZATION
-    // =========================================================================
     window.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('role-select').value = currentRole;
       document.getElementById('user-name-input').value = currentUserName;
       initSupabase();
       buildColorPicker();
-      setupVectorCanvasEvents();
-
-      const params = new URLSearchParams(window.location.search);
-      const urlSku = params.get('sku');
-
       if (sb) {
         await loadAllData();
-        if (urlSku) {
-          document.getElementById('search-catalog').value = urlSku;
-          renderCatalog();
-        }
       } else {
         openSettingsModal();
       }
@@ -878,16 +811,18 @@
 
       document.getElementById('count-catalog').textContent = activeAssets.length;
       document.getElementById('count-supplies').textContent = supplies.length;
+      document.getElementById('count-locations').textContent = state.locations.length;
       document.getElementById('count-lists').textContent = state.lists.length;
       document.getElementById('count-print').textContent = queued.reduce((acc, i) => acc + (i.print_copies || 1), 0);
       document.getElementById('count-repairs').textContent = openRepairs.length;
       document.getElementById('count-trash').textContent = trashed.length;
 
+      buildColorPicker();
       renderCatalog();
       renderSupplies();
+      renderLocationsList();
       renderLists();
       renderPrintQueue();
-      renderSpaceMap();
       renderRepairs();
       renderTrash();
       renderAdmin();
@@ -898,27 +833,19 @@
       document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
       document.getElementById(`view-${tab}`).classList.remove('hidden');
       document.querySelectorAll('.nav-tab').forEach(btn => {
-        btn.classList.remove('border-amber-500', 'text-amber-400');
-        btn.classList.add('border-transparent', 'text-slate-400');
+        btn.classList.remove('border-yellow-400', 'text-yellow-400', 'font-bold');
+        btn.classList.add('border-transparent', 'text-neutral-400', 'font-semibold');
       });
       const activeBtn = document.getElementById(`tab-${tab}`);
-      activeBtn.classList.add('border-amber-500', 'text-amber-400');
-      activeBtn.classList.remove('border-transparent', 'text-slate-400');
+      activeBtn.classList.add('border-yellow-400', 'text-yellow-400', 'font-bold');
+      activeBtn.classList.remove('border-transparent', 'text-neutral-400', 'font-semibold');
     }
 
-    function changeRole(role) {
-      currentRole = role;
-      localStorage.setItem('ost_role', role);
-      refreshAllViews();
-    }
-
-    function changeUserName(name) {
-      currentUserName = name.trim() || 'Shop User';
-      localStorage.setItem('ost_user', currentUserName);
-    }
+    function changeRole(role) { currentRole = role; localStorage.setItem('ost_role', role); refreshAllViews(); }
+    function changeUserName(name) { currentUserName = name.trim() || 'Shop User'; localStorage.setItem('ost_user', currentUserName); }
 
     // =========================================================================
-    // SKU & LOCATION HELPERS
+    // SKU & NESTED LOCATION HELPERS
     // =========================================================================
     function isCleanSku(sku) {
       const leetMap = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b' };
@@ -935,78 +862,120 @@
       return String(Math.floor(100000 + Math.random() * 900000));
     }
 
-    function rollCleanSku() {
-      document.getElementById('item-sku').value = generateCleanSku();
-    }
-
-    function getGeneralLocationLabel(locationId) {
-      const loc = state.locations.find(l => l.id === locationId);
-      if (!loc) return 'UNASSIGNED LOCATION';
-      const place = loc.place_name || loc.room_label || loc.name || '';
-      const site = loc.building_name || loc.site_name || '';
-      return site && place ? `${place.toUpperCase()} (${site.toUpperCase()})` : (place || site).toUpperCase();
-    }
+    function rollCleanSku() { document.getElementById('item-sku').value = generateCleanSku(); }
 
     function getFullLocationPath(locationId) {
       const loc = state.locations.find(l => l.id === locationId);
       if (!loc) return 'Unassigned';
-      const parent = loc.parent_location_id ? state.locations.find(p => p.id === loc.parent_location_id) : null;
-      return [
-        loc.building_name || loc.site_name,
-        `Floor ${loc.floor_number ?? loc.floor_level ?? 1}`,
-        parent ? (parent.place_name || parent.name) : null,
-        loc.place_name || loc.room_label,
-        loc.name !== (loc.place_name || loc.room_label) ? loc.name : null
-      ].filter(Boolean).join(' › ');
+      const chain = [];
+      const visited = new Set();
+      let cur = loc;
+      while (cur && !visited.has(cur.id)) {
+        visited.add(cur.id);
+        const label = cur.place_name || cur.room_label || cur.name;
+        const sub = cur.name && cur.name !== label ? cur.name : null;
+        chain.unshift(sub ? `${label} (${sub})` : label);
+        cur = cur.parent_location_id ? state.locations.find(p => p.id === cur.parent_location_id) : null;
+      }
+      const bldg = loc.building_name || loc.site_name;
+      if (bldg) chain.unshift(bldg);
+      return chain.join(' › ');
     }
 
-    // =========================================================================
-    // MINI VECTOR MAP SVG RENDERER (USED ON CATALOG CARDS & ITEM DETAIL MODAL)
-    // =========================================================================
-    function buildVectorMiniMapSvg(locationId, compact = true) {
-      const targetLoc = state.locations.find(l => l.id === locationId);
-      if (!targetLoc) {
-        return `<div class="h-full flex items-center justify-center text-[11px] text-slate-500">No map location assigned</div>`;
+    function getGeneralLocationLabel(locationId) {
+      const loc = state.locations.find(l => l.id === locationId);
+      if (!loc) return 'UNASSIGNED';
+      const place = loc.place_name || loc.room_label || loc.name || '';
+      const bldg = loc.building_name || loc.site_name || '';
+      return bldg && place ? `${place.toUpperCase()} (${bldg.toUpperCase()})` : (place || bldg).toUpperCase();
+    }
+
+    function renderLocationsList() {
+      const container = document.getElementById('locations-hierarchy-list');
+      if (!state.locations.length) {
+        container.innerHTML = `<div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-6 text-center text-xs text-neutral-400">No locations created yet. Click "+ Add Location / Sub-Location".</div>`;
+        return;
       }
-      const bldg = targetLoc.building_name || targetLoc.site_name || 'Main Bldg';
-      const floor = targetLoc.floor_number ?? targetLoc.floor_level ?? 1;
-      const parentLoc = targetLoc.parent_location_id ? state.locations.find(p => p.id === targetLoc.parent_location_id) : null;
 
-      const floorRooms = state.locations
-        .filter(l => (l.building_name || l.site_name || 'Main Bldg') === bldg && (l.floor_number ?? l.floor_level ?? 1) === floor && (l.svg_w || l.map_w))
-        .sort((a, b) => ((b.svg_w || b.map_w * 10) * (b.svg_h || b.map_h * 6)) - ((a.svg_w || a.map_w * 10) * (a.svg_h || a.map_h * 6)));
+      // Compute nesting depth
+      const getDepth = (loc) => {
+        let d = 0;
+        let cur = loc;
+        const seen = new Set();
+        while (cur && cur.parent_location_id && !seen.has(cur.id) && d < 6) {
+          seen.add(cur.id);
+          d += 1;
+          cur = state.locations.find(p => p.id === cur.parent_location_id);
+        }
+        return d;
+      };
 
-      const dotX = targetLoc.dot_x != null ? (targetLoc.dot_x <= 100 ? targetLoc.dot_x * 10 : targetLoc.dot_x) : null;
-      const dotY = targetLoc.dot_y != null ? (targetLoc.dot_y <= 100 ? targetLoc.dot_y * 6.2 : targetLoc.dot_y) : null;
-
-      const roomsSvg = floorRooms.map(r => {
-        const rx = r.svg_x != null ? r.svg_x : (r.map_x || 0) * 10;
-        const ry = r.svg_y != null ? r.svg_y : (r.map_y || 0) * 6.2;
-        const rw = r.svg_w != null ? r.svg_w : (r.map_w || 20) * 10;
-        const rh = r.svg_h != null ? r.svg_h : (r.map_h || 20) * 6.2;
-        const isHighlighted = r.id === targetLoc.id || (parentLoc && r.id === parentLoc.id);
+      const sorted = [...state.locations].sort((a, b) => getFullLocationPath(a.id).localeCompare(getFullLocationPath(b.id)));
+      container.innerHTML = sorted.map(loc => {
+        const depth = getDepth(loc);
+        const itemCount = state.items.filter(i => !i.deleted_at && i.location_id === loc.id).length;
         return `
-          <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="8"
-            fill="${isHighlighted ? 'rgba(245, 158, 11, 0.28)' : 'rgba(30, 41, 59, 0.75)'}"
-            stroke="${isHighlighted ? '#f59e0b' : '#475569'}" stroke-width="${isHighlighted ? '4' : '2'}" />
-          ${!compact ? `<text x="${rx + 12}" y="${ry + 24}" fill="${isHighlighted ? '#fbbf24' : '#94a3b8'}" font-size="18" font-weight="bold">${r.place_name || r.name}</text>` : ''}
+          <div style="margin-left: ${depth * 24}px" class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-3.5 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-bold text-white">${depth > 0 ? '↳ ' : ''}${loc.place_name || loc.name}${loc.name && loc.name !== (loc.place_name || '') ? ` — <span class="text-yellow-400">${loc.name}</span>` : ''}</div>
+              <div class="text-xs text-neutral-400">${getFullLocationPath(loc.id)} • <span class="text-yellow-300">${itemCount} items</span></div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openLocationModal(null, '${loc.id}')" class="text-xs bg-[#141414] hover:bg-neutral-800 text-yellow-400 px-2.5 py-1.5 rounded-lg border border-neutral-700">+ Sub-Location</button>
+              <button onclick="openLocationModal('${loc.id}')" class="text-xs bg-[#141414] hover:bg-neutral-800 text-white px-2.5 py-1.5 rounded-lg border border-neutral-700">Edit</button>
+            </div>
+          </div>
         `;
       }).join('');
+    }
 
-      const dotSvg = (dotX != null && dotY != null)
-        ? `<circle cx="${dotX}" cy="${dotY}" r="${compact ? 18 : 14}" fill="#ef4444" stroke="#ffffff" stroke-width="4" />`
-        : '';
+    function openLocationModal(editLocId = null, defaultParentId = null) {
+      const loc = editLocId ? state.locations.find(l => l.id === editLocId) : null;
+      const parentObj = defaultParentId ? state.locations.find(l => l.id === defaultParentId) : null;
+      document.getElementById('edit-loc-id').value = loc ? loc.id : '';
+      document.getElementById('loc-site').value = loc ? (loc.building_name || loc.site_name || 'Main Building') : (parentObj?.building_name || 'Main Building');
+      document.getElementById('loc-floor').value = loc ? (loc.floor_number ?? 1) : (parentObj?.floor_number ?? 1);
+      document.getElementById('loc-place').value = loc ? (loc.place_name || loc.room_label || '') : (parentObj ? (parentObj.place_name || parentObj.name) : '');
+      document.getElementById('loc-rack').value = loc && loc.name !== (loc.place_name || '') ? loc.name : '';
 
-      return `
-        <svg viewBox="0 0 1000 620" class="w-full h-full bg-slate-950">
-          ${roomsSvg}
-          ${dotSvg}
-        </svg>
-      `;
+      document.getElementById('loc-parent').innerHTML =
+        `<option value="">None (Top-Level Room / Zone)</option>` +
+        state.locations.filter(l => l.id !== editLocId).map(l => `<option value="${l.id}">${getFullLocationPath(l.id)}</option>`).join('');
+      document.getElementById('loc-parent').value = loc ? (loc.parent_location_id || '') : (defaultParentId || '');
+
+      document.getElementById('location-modal').classList.remove('hidden');
+    }
+
+    async function saveLocation() {
+      const site = document.getElementById('loc-site').value.trim() || 'Main Building';
+      const floor = Number(document.getElementById('loc-floor').value || 1);
+      const parentId = document.getElementById('loc-parent').value || null;
+      const place = document.getElementById('loc-place').value.trim();
+      const rack = document.getElementById('loc-rack').value.trim();
+      if (!place && !rack) return alert('Enter a room/zone name or sub-location.');
+
+      const payload = {
+        name: rack || place,
+        building_name: site,
+        site_name: site,
+        place_name: place || rack,
+        room_label: place || rack,
+        floor_number: floor,
+        parent_location_id: parentId
+      };
+
+      const editId = document.getElementById('edit-loc-id').value;
+      const { error } = editId
+        ? await sb.from('locations').update(payload).eq('id', editId)
+        : await sb.from('locations').insert(payload);
+
+      if (error) return alert(`Error saving location: ${error.message}`);
+      closeModal('location-modal');
+      await loadAllData();
     }
 
     // =========================================================================
-    // 1. CATALOG VIEW (READ-ONLY CARDS + MINI-MAP + LARGE ACTION ICONS)
+    // CATALOG VIEW (READ-ONLY CARDS + LARGE ACTION ICONS + NO DELETE ON CARD)
     // =========================================================================
     function renderCatalog() {
       const q = (document.getElementById('search-catalog').value || '').toLowerCase();
@@ -1025,11 +994,7 @@
           if (!linkedShowIds.includes(showFilter)) return false;
         }
         if (q) {
-          const itemShowTitles = state.itemShows
-            .filter(is => is.item_id === item.id)
-            .map(is => (state.shows.find(s => s.id === is.show_id) || {}).title || '')
-            .join(' ');
-          const hay = `${item.title} ${item.sku} ${item.department} ${(item.colors || []).join(' ')} ${item.description || ''} ${item.notes || ''} ${itemShowTitles}`.toLowerCase();
+          const hay = `${item.title} ${item.sku} ${item.department} ${(item.colors || []).join(' ')} ${item.description || ''} ${item.notes || ''}`.toLowerCase();
           if (!hay.includes(q)) return false;
         }
         return true;
@@ -1037,7 +1002,7 @@
 
       const grid = document.getElementById('catalog-grid');
       if (!items.length) {
-        grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-sm">No matching production assets found.</div>`;
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-neutral-400 text-sm">No items match the current filter.</div>`;
         return;
       }
 
@@ -1049,24 +1014,23 @@
           .filter(is => is.item_id === item.id)
           .map(is => state.shows.find(s => s.id === is.show_id))
           .filter(Boolean)
-          .map(s => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800">${s.title}</span>`)
+          .map(s => `<span class="text-[10px] px-2 py-0.5 rounded bg-[#141414] text-yellow-300 border border-yellow-500/30">${s.title}</span>`)
           .join('');
 
         const colorsHtml = (item.colors || []).map((c, idx) => {
-          const pal = PALETTE.find(p => p.name.toLowerCase() === c.toLowerCase());
-          return `<span title="${c}${idx === 0 ? ' (Dominant)' : ''}" class="inline-block w-3.5 h-3.5 rounded-full border border-white/30 ${idx === 0 ? 'ring-2 ring-amber-400' : ''}" style="background:${pal ? pal.hex : '#64748b'}"></span>`;
+          const pal = state.palette.find(p => p.name.toLowerCase() === c.toLowerCase());
+          return `<span title="${c}${idx === 0 ? ' (Dominant)' : ''}" class="inline-block w-3.5 h-3.5 rounded-full border border-white/40 ${idx === 0 ? 'ring-2 ring-yellow-400' : ''}" style="background:${pal ? pal.hex : '#888888'}"></span>`;
         }).join('');
 
         return `
-          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between hover:border-slate-700 transition">
-            <!-- Clickable Read-Only Body -->
+          <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl overflow-hidden flex flex-col justify-between hover:border-yellow-500/50 transition">
             <div onclick="openItemDetailModal('${item.id}')" class="cursor-pointer">
-              <div class="relative h-44 bg-slate-950 flex items-center justify-center overflow-hidden">
-                ${cover ? `<img src="${cover}" class="w-full h-full object-cover" />` : `<span class="text-xs text-slate-600 font-mono">NO PHOTO • ${item.sku || ''}</span>`}
-                <span class="absolute top-2 left-2 bg-slate-950/85 text-amber-400 font-mono text-xs px-2 py-0.5 rounded border border-slate-700">
+              <div class="relative h-44 bg-black flex items-center justify-center overflow-hidden border-b border-neutral-900">
+                ${cover ? `<img src="${cover}" class="w-full h-full object-cover" />` : `<span class="text-xs text-neutral-600 font-mono">NO PHOTO • ${item.sku || ''}</span>`}
+                <span class="absolute top-2 left-2 bg-black/90 text-yellow-400 font-mono text-xs px-2 py-0.5 rounded border border-yellow-500/40 font-bold">
                   ${item.sku || '------'}
                 </span>
-                ${openRepair ? `<span class="absolute bottom-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Needs Repair (${openRepair.priority})</span>` : ''}
+                ${openRepair ? `<span class="absolute bottom-2 left-2 bg-yellow-400 text-black text-[10px] font-black px-2 py-0.5 rounded uppercase">Repair: ${openRepair.priority}</span>` : ''}
               </div>
 
               <div class="p-4 space-y-2.5">
@@ -1075,54 +1039,47 @@
                   <div class="flex items-center gap-1 shrink-0 pt-1">${colorsHtml}</div>
                 </div>
 
-                ${desc ? `<p class="text-xs text-slate-300 line-clamp-2">${desc}</p>` : ''}
+                ${desc ? `<p class="text-xs text-neutral-300 line-clamp-2">${desc}</p>` : ''}
 
                 <div class="flex flex-wrap gap-1">
-                  <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${item.department || 'UNASSIGNED'}</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">${item.readiness_status || 'READY_FOR_STAGE'}</span>
-                  <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-sky-300 border border-slate-700">${item.borrow_rent_mode || 'INTERNAL_ONLY'}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#141414] text-white border border-neutral-700">${item.department || 'ASSET'}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#141414] text-yellow-400 border border-neutral-700">${item.readiness_status || 'READY_FOR_STAGE'}</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-[#141414] text-neutral-200 border border-neutral-700">${item.borrow_rent_mode || 'INTERNAL_ONLY'}</span>
                   ${showBadges}
-                  ${(item.safety_flags || []).map(f => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800">${f}</span>`).join('')}
+                  ${(item.safety_flags || []).map(f => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-black text-yellow-300 border border-yellow-500/40">${f}</span>`).join('')}
                 </div>
 
-                <!-- Mini Vector Space Map Preview on Card -->
-                <div class="flex items-center gap-2.5 bg-slate-950/80 border border-slate-800 rounded-lg p-2">
-                  <div class="w-16 h-11 rounded overflow-hidden border border-slate-800 shrink-0">
-                    ${buildVectorMiniMapSvg(item.location_id, true)}
-                  </div>
-                  <div class="min-w-0">
-                    <div class="text-[10px] uppercase font-bold text-amber-400">Location</div>
-                    <div class="text-xs text-slate-200 truncate">${getFullLocationPath(item.location_id)}</div>
-                  </div>
+                <div class="text-xs text-neutral-300 pt-1 border-t border-neutral-900">
+                  <span class="text-yellow-400 font-semibold">Location:</span> ${getFullLocationPath(item.location_id)}
                 </div>
               </div>
             </div>
 
-            <!-- Larger Action Icon Bar (No Delete on Card) -->
-            <div class="px-3 py-2.5 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between gap-2">
-              <button onclick="openItemDetailModal('${item.id}')" title="View Item Details"
-                class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold">
+            <!-- Larger Action Icons (No Delete Button on Card) -->
+            <div class="px-3 py-2.5 bg-black border-t border-neutral-800 flex items-center justify-between gap-2">
+              <button onclick="openItemDetailModal('${item.id}')" title="View Details"
+                class="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg bg-[#141414] hover:bg-neutral-800 text-white text-xs font-semibold border border-neutral-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                 <span>View</span>
               </button>
 
               <button onclick="addItemToActiveList('${item.id}')" title="Add to List"
-                class="p-2 rounded-lg bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-800">
+                class="p-2 rounded-lg bg-[#141414] hover:bg-neutral-800 text-yellow-400 border border-neutral-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
               </button>
 
-              <button onclick="quickCheckoutItem('${item.id}')" title="Quick Check-Out"
-                class="p-2 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800">
+              <button onclick="quickCheckoutItem('${item.id}')" title="Check Out"
+                class="p-2 rounded-lg bg-[#141414] hover:bg-neutral-800 text-white border border-neutral-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
               </button>
 
-              <button onclick="togglePrintQueue('${item.id}')" title="Queue Label Print"
-                class="p-2 rounded-lg border ${item.print_queued ? 'bg-amber-500 text-slate-950 border-amber-400' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'}">
+              <button onclick="togglePrintQueue('${item.id}')" title="Queue Label"
+                class="p-2 rounded-lg border ${item.print_queued ? 'bg-yellow-400 text-black border-yellow-300' : 'bg-[#141414] hover:bg-neutral-800 text-white border-neutral-700'}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
               </button>
 
               <button onclick="openItemModal('${item.id}')" title="Edit Item"
-                class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700">
+                class="p-2 rounded-lg bg-[#141414] hover:bg-neutral-800 text-yellow-400 border border-neutral-700">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
               </button>
             </div>
@@ -1131,9 +1088,6 @@
       }).join('');
     }
 
-    // =========================================================================
-    // READ-ONLY ITEM DETAIL MODAL & QUICK CHECK-OUT
-    // =========================================================================
     function openItemDetailModal(itemId) {
       const item = state.items.find(i => i.id === itemId);
       if (!item) return;
@@ -1145,46 +1099,30 @@
       document.getElementById('detail-location-path').textContent = getFullLocationPath(item.location_id);
 
       const photos = (item.photo_urls && item.photo_urls.length) ? item.photo_urls : (item.photo_url ? [item.photo_url] : []);
-      const mainPhotoEl = document.getElementById('detail-main-photo');
-      mainPhotoEl.innerHTML = photos[0]
+      document.getElementById('detail-main-photo').innerHTML = photos[0]
         ? `<img src="${photos[0]}" class="w-full h-full object-contain" />`
-        : `<span class="text-xs text-slate-500 font-mono">NO PHOTO AVAILABLE</span>`;
+        : `<span class="text-xs text-neutral-500 font-mono">NO PHOTO</span>`;
 
       document.getElementById('detail-thumbs').innerHTML = photos.map(url => `
         <img src="${url}" onclick="document.getElementById('detail-main-photo').innerHTML='<img src=\\'${url}\\' class=\\'w-full h-full object-contain\\' />'"
-          class="w-14 h-14 rounded-lg object-cover border border-slate-700 cursor-pointer hover:border-amber-400" />
+          class="w-14 h-14 rounded-lg object-cover border border-neutral-700 cursor-pointer hover:border-yellow-400" />
       `).join('');
 
-      const showBadges = state.itemShows
-        .filter(is => is.item_id === item.id)
-        .map(is => state.shows.find(s => s.id === is.show_id))
-        .filter(Boolean)
-        .map(s => `<span class="text-xs px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Show: ${s.title}</span>`);
-
       document.getElementById('detail-tags').innerHTML = [
-        `<span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">${item.readiness_status || 'READY_FOR_STAGE'}</span>`,
-        `<span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-sky-300 border border-slate-700">${item.borrow_rent_mode || 'INTERNAL_ONLY'}</span>`,
-        ...(item.safety_flags || []).map(f => `<span class="text-xs px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">${f}</span>`),
-        ...showBadges
+        `<span class="text-xs px-2.5 py-0.5 rounded bg-[#141414] text-yellow-400 border border-yellow-500/40">${item.readiness_status || 'READY_FOR_STAGE'}</span>`,
+        `<span class="text-xs px-2.5 py-0.5 rounded bg-[#141414] text-white border border-neutral-700">${item.borrow_rent_mode || 'INTERNAL_ONLY'}</span>`,
+        ...(item.colors || []).map(c => `<span class="text-xs px-2.5 py-0.5 rounded bg-[#141414] text-white border border-neutral-700">Color: ${c}</span>`),
+        ...(item.safety_flags || []).map(f => `<span class="text-xs px-2.5 py-0.5 rounded bg-black text-yellow-300 border border-yellow-500/40">${f}</span>`)
       ].join('');
 
-      const specs = item.specifications || {};
-      const specEntries = Object.entries(specs);
-      document.getElementById('detail-specs').innerHTML = specEntries.length
-        ? specEntries.map(([k, v]) => `<div><strong class="text-slate-400">${k}:</strong> ${v}</div>`).join('')
-        : `<div class="text-slate-500">Quantity: ${item.quantity_total ?? 1} • Ownership: ${item.ownership_source || 'OWNED'}</div>`;
-
-      document.getElementById('detail-mini-map').innerHTML = buildVectorMiniMapSvg(item.location_id, false);
+      const specs = Object.entries(item.specifications || {});
+      document.getElementById('detail-specs').innerHTML = specs.length
+        ? specs.map(([k, v]) => `<div><strong class="text-yellow-400">${k}:</strong> ${v}</div>`).join('')
+        : `<div class="text-neutral-400">Qty: ${item.quantity_total ?? 1} • Ownership: ${item.ownership_source || 'OWNED'}</div>`;
 
       document.getElementById('detail-btn-add-list').onclick = () => addItemToActiveList(item.id);
-      document.getElementById('detail-btn-checkout').onclick = async () => {
-        await quickCheckoutItem(item.id);
-        closeModal('item-detail-modal');
-      };
-      document.getElementById('detail-btn-edit').onclick = () => {
-        closeModal('item-detail-modal');
-        openItemModal(item.id);
-      };
+      document.getElementById('detail-btn-checkout').onclick = async () => { await quickCheckoutItem(item.id); closeModal('item-detail-modal'); };
+      document.getElementById('detail-btn-edit').onclick = () => { closeModal('item-detail-modal'); openItemModal(item.id); };
 
       document.getElementById('item-detail-modal').classList.remove('hidden');
     }
@@ -1192,11 +1130,11 @@
     async function quickCheckoutItem(itemId) {
       await sb.from('items').update({ readiness_status: 'PULLED' }).eq('id', itemId);
       await loadAllData();
-      alert('Item marked as Checked-Out / Pulled.');
+      alert('Item checked out (marked PULLED).');
     }
 
     // =========================================================================
-    // 2. SEPARATE SUPPLIES TAB & SEPARATE SUPPLY MODAL
+    // SUPPLIES TAB & SEPARATE SUPPLY MODAL
     // =========================================================================
     function renderSupplies() {
       const lowOnly = document.getElementById('filter-low-stock').checked;
@@ -1208,31 +1146,31 @@
 
       const tbody = document.getElementById('supplies-tbody');
       if (!supplies.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 text-xs">No shop supplies matching filter. Click "+ Add Supply Item" to create one.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-neutral-400 text-xs">No supplies yet. Click "+ Add Supply Item".</td></tr>`;
         return;
       }
 
       tbody.innerHTML = supplies.map(s => {
         const isLow = s.low_stock_threshold != null && s.quantity_total <= s.low_stock_threshold;
         return `
-          <tr class="hover:bg-slate-800/40">
+          <tr class="hover:bg-[#141414]/60">
             <td class="px-4 py-3">
-              <div class="font-semibold text-white">${s.title}</div>
-              <div class="text-[11px] font-mono text-slate-400">${s.sku || ''} ${s.notes ? '• ' + s.notes : ''}</div>
+              <div class="font-bold text-white">${s.title}</div>
+              <div class="text-xs font-mono text-neutral-400">${s.sku || ''} ${s.notes ? '• ' + s.notes : ''}</div>
             </td>
-            <td class="px-4 py-3 text-xs text-slate-300">${s.subtype_code || s.department}</td>
-            <td class="px-4 py-3 text-xs text-slate-300">${getFullLocationPath(s.location_id)}</td>
+            <td class="px-4 py-3 text-xs text-white">${s.subtype_code || s.department}</td>
+            <td class="px-4 py-3 text-xs text-neutral-300">${getFullLocationPath(s.location_id)}</td>
             <td class="px-4 py-3">
-              <div class="inline-flex items-center gap-2 bg-slate-800 rounded-lg px-2 py-1 border border-slate-700">
-                <button onclick="adjustSupplyQty('${s.id}', -1)" class="px-2 text-slate-300 hover:text-white font-bold">-</button>
-                <span class="font-mono font-bold ${isLow ? 'text-red-400' : 'text-white'}">${s.quantity_total ?? 0}</span>
-                <button onclick="adjustSupplyQty('${s.id}', 1)" class="px-2 text-slate-300 hover:text-white font-bold">+</button>
+              <div class="inline-flex items-center gap-2 bg-black rounded-lg px-2 py-1 border border-neutral-700">
+                <button onclick="adjustSupplyQty('${s.id}', -1)" class="px-2 text-yellow-400 font-bold">-</button>
+                <span class="font-mono font-bold ${isLow ? 'text-yellow-400 underline' : 'text-white'}">${s.quantity_total ?? 0}</span>
+                <button onclick="adjustSupplyQty('${s.id}', 1)" class="px-2 text-yellow-400 font-bold">+</button>
               </div>
-              ${isLow ? `<span class="ml-2 text-[10px] bg-red-600 text-white px-2 py-0.5 rounded font-bold">LOW</span>` : ''}
+              ${isLow ? `<span class="ml-2 text-[10px] bg-yellow-400 text-black px-2 py-0.5 rounded font-black">LOW</span>` : ''}
             </td>
-            <td class="px-4 py-3 text-xs text-slate-400">${s.low_stock_threshold ?? '—'}</td>
+            <td class="px-4 py-3 text-xs text-neutral-400">${s.low_stock_threshold ?? '—'}</td>
             <td class="px-4 py-3 text-right">
-              <button onclick="openSupplyModal('${s.id}')" title="Edit Supply" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 inline-flex items-center gap-1 text-xs font-semibold">
+              <button onclick="openSupplyModal('${s.id}')" class="p-2 rounded-lg bg-[#141414] hover:bg-neutral-800 text-yellow-400 border border-neutral-700 inline-flex items-center gap-1 text-xs font-semibold">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 <span>Edit</span>
               </button>
@@ -1251,14 +1189,12 @@
       document.getElementById('supply-location').value = supply ? (supply.location_id || '') : '';
       document.getElementById('supply-notes').value = supply ? (supply.notes || '') : '';
 
-      const consumableParent = state.itemTypes.find(t => t.code === 'CONSUMABLES');
       const supplySubtypes = state.itemTypes.filter(t => t.is_consumable && t.code !== 'CONSUMABLES');
       document.getElementById('supply-subtype').innerHTML = supplySubtypes.length
         ? supplySubtypes.map(s => `<option value="${s.code}">${s.label}</option>`).join('')
-        : `<option value="CONSUMABLES">${consumableParent ? consumableParent.label : 'Shop Supplies'}</option>`;
-
+        : `<option value="CONSUMABLES">Shop Supplies</option>`;
       if (supply && supply.subtype_code) document.getElementById('supply-subtype').value = supply.subtype_code;
-      document.getElementById('btn-delete-supply').classList.toggle('hidden', !supply);
+
       document.getElementById('supply-modal').classList.remove('hidden');
     }
 
@@ -1285,311 +1221,77 @@
         ? await sb.from('items').update(payload).eq('id', editId)
         : await sb.from('items').insert(payload);
 
-      if (error) return alert(`Save supply failed: ${error.message}`);
+      if (error) return alert(`Error saving supply: ${error.message}`);
       closeModal('supply-modal');
       await loadAllData();
-    }
-
-    async function deleteSupplyFromModal() {
-      const id = document.getElementById('edit-supply-id').value;
-      if (!id) return;
-      closeModal('supply-modal');
-      await softDeleteItem(id);
     }
 
     async function adjustSupplyQty(id, delta) {
       const item = state.items.find(i => i.id === id);
       if (!item) return;
-      const nextQty = Math.max(0, (item.quantity_total || 0) + delta);
-      await sb.from('items').update({ quantity_total: nextQty }).eq('id', id);
+      await sb.from('items').update({ quantity_total: Math.max(0, (item.quantity_total || 0) + delta) }).eq('id', id);
       await loadAllData();
     }
 
     // =========================================================================
-    // 5. INTERACTIVE VECTOR SPACE MAPS & LOCATION HIERARCHY
+    // ADMIN: PICKABLE COLOR + CUSTOM NAME + DEFINITIONS
     // =========================================================================
-    function setMapTool(tool) {
-      mapTool = tool;
-      document.querySelectorAll('.map-tool-btn').forEach(btn => {
-        btn.className = 'map-tool-btn text-xs bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700';
+    function addCustomColorDefinition() {
+      const hex = document.getElementById('new-color-hex').value;
+      const name = document.getElementById('new-color-name').value.trim();
+      if (!name) return alert('Enter a name for the picked color.');
+      const idx = state.palette.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+      if (idx >= 0) state.palette[idx] = { name, hex };
+      else state.palette.push({ name, hex });
+      localStorage.setItem('ost_custom_colors', JSON.stringify(state.palette));
+      document.getElementById('new-color-name').value = '';
+      buildColorPicker();
+      renderAdmin();
+    }
+
+    function removeColorDefinition(name) {
+      state.palette = state.palette.filter(c => c.name !== name);
+      localStorage.setItem('ost_custom_colors', JSON.stringify(state.palette));
+      buildColorPicker();
+      renderAdmin();
+    }
+
+    function buildColorPicker() {
+      const row = document.getElementById('color-picker-row');
+      if (!row) return;
+      row.innerHTML = state.palette.map(c => `
+        <button type="button" data-color="${c.name}" onclick="toggleColor('${c.name}')"
+          class="color-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-neutral-700 bg-black text-xs text-white">
+          <span class="w-3.5 h-3.5 rounded-full border border-white/40" style="background:${c.hex}"></span>
+          <span>${c.name}</span>
+        </button>
+      `).join('');
+      syncColorPickerUI();
+    }
+
+    function toggleColor(name) {
+      const idx = state.selectedColors.indexOf(name);
+      if (idx >= 0) state.selectedColors.splice(idx, 1);
+      else state.selectedColors.push(name);
+      syncColorPickerUI();
+    }
+
+    function syncColorPickerUI() {
+      document.querySelectorAll('.color-btn').forEach(btn => {
+        const idx = state.selectedColors.indexOf(btn.dataset.color);
+        btn.classList.toggle('border-yellow-400', idx >= 0);
+        btn.classList.toggle('ring-2', idx === 0);
+        btn.classList.toggle('ring-yellow-400', idx === 0);
       });
-      const active = document.getElementById(`tool-${tool}`);
-      if (active) active.className = 'map-tool-btn text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg';
-
-      const hints = {
-        SELECT: 'Click any room or shelf dot on the floorplan to inspect items or edit.',
-        DRAW_ROOM: 'Click and drag across the grid to draw a new Room box.',
-        DRAW_SUBROOM: 'Click and drag inside an existing room to draw an overlapping Sub-Room.',
-        DROP_DOT: 'Click anywhere on the floorplan to drop a Shelf / Rack Location Dot.'
-      };
-      document.getElementById('map-tool-hint').textContent = hints[tool] || '';
-    }
-
-    function getSvgCoords(svgEl, evt) {
-      const rect = svgEl.getBoundingClientRect();
-      return {
-        x: Math.round(((evt.clientX - rect.left) / rect.width) * 1000),
-        y: Math.round(((evt.clientY - rect.top) / rect.height) * 620)
-      };
-    }
-
-    function setupVectorCanvasEvents() {
-      const svg = document.getElementById('vector-floorplan');
-      const preview = document.getElementById('svg-drag-preview');
-
-      svg.addEventListener('mousedown', (e) => {
-        const pt = getSvgCoords(svg, e);
-        if (mapTool === 'DROP_DOT') {
-          dropShelfDotAt(pt.x, pt.y);
-          return;
-        }
-        if (mapTool === 'DRAW_ROOM' || mapTool === 'DRAW_SUBROOM') {
-          isDrawingMap = true;
-          dragStartSvg = pt;
-          preview.setAttribute('x', pt.x);
-          preview.setAttribute('y', pt.y);
-          preview.setAttribute('width', 0);
-          preview.setAttribute('height', 0);
-          preview.classList.remove('hidden');
-        }
-      });
-
-      svg.addEventListener('mousemove', (e) => {
-        if (!isDrawingMap || !dragStartSvg) return;
-        const pt = getSvgCoords(svg, e);
-        preview.setAttribute('x', Math.min(dragStartSvg.x, pt.x));
-        preview.setAttribute('y', Math.min(dragStartSvg.y, pt.y));
-        preview.setAttribute('width', Math.abs(pt.x - dragStartSvg.x));
-        preview.setAttribute('height', Math.abs(pt.y - dragStartSvg.y));
-      });
-
-      svg.addEventListener('mouseup', async (e) => {
-        if (!isDrawingMap || !dragStartSvg) return;
-        isDrawingMap = false;
-        preview.classList.add('hidden');
-        const pt = getSvgCoords(svg, e);
-        const x = Math.min(dragStartSvg.x, pt.x);
-        const y = Math.min(dragStartSvg.y, pt.y);
-        const w = Math.abs(pt.x - dragStartSvg.x);
-        const h = Math.abs(pt.y - dragStartSvg.y);
-        if (w < 30 || h < 30) return;
-
-        const label = prompt(mapTool === 'DRAW_SUBROOM' ? 'Sub-Room Label (e.g. Paint Room):' : 'Room Label (e.g. Main Warehouse):');
-        if (!label || !label.trim()) return;
-
-        const building = document.getElementById('map-building-select').value || 'Main Bldg';
-        const floor = Number(document.getElementById('map-floor-select').value || 1);
-
-        // Find enclosing parent room if drawing a sub-room
-        let parentId = null;
-        if (mapTool === 'DRAW_SUBROOM') {
-          const cx = x + w / 2;
-          const cy = y + h / 2;
-          const parentRoom = state.locations.find(l =>
-            (l.building_name || l.site_name || 'Main Bldg') === building &&
-            (l.floor_number ?? 1) === floor &&
-            l.svg_x != null && cx >= l.svg_x && cx <= (l.svg_x + l.svg_w) &&
-            cy >= l.svg_y && cy <= (l.svg_y + l.svg_h)
-          );
-          if (parentRoom) parentId = parentRoom.id;
-        }
-
-        await sb.from('locations').insert({
-          name: label.trim(),
-          building_name: building,
-          site_name: building,
-          place_name: label.trim(),
-          room_label: label.trim(),
-          floor_number: floor,
-          floor_level: floor,
-          parent_location_id: parentId,
-          is_sub_room: mapTool === 'DRAW_SUBROOM',
-          location_kind: mapTool === 'DRAW_SUBROOM' ? 'SUB_ROOM' : 'ROOM',
-          svg_x: x,
-          svg_y: y,
-          svg_w: w,
-          svg_h: h
-        });
-
-        setMapTool('SELECT');
-        await loadAllData();
-      });
-    }
-
-    async function dropShelfDotAt(x, y) {
-      const building = document.getElementById('map-building-select').value || 'Main Bldg';
-      const floor = Number(document.getElementById('map-floor-select').value || 1);
-
-      // Detect enclosing room (smallest room wins if nested)
-      const enclosing = state.locations
-        .filter(l => (l.building_name || l.site_name || 'Main Bldg') === building && (l.floor_number ?? 1) === floor && l.svg_x != null &&
-          x >= l.svg_x && x <= (l.svg_x + l.svg_w) && y >= l.svg_y && y <= (l.svg_y + l.svg_h))
-        .sort((a, b) => (a.svg_w * a.svg_h) - (b.svg_w * b.svg_h))[0];
-
-      const shelfName = prompt(`Shelf / Rack Dot Name${enclosing ? ' inside ' + (enclosing.place_name || enclosing.name) : ''}:`);
-      if (!shelfName || !shelfName.trim()) return;
-
-      await sb.from('locations').insert({
-        name: shelfName.trim(),
-        building_name: building,
-        site_name: building,
-        place_name: enclosing ? (enclosing.place_name || enclosing.name) : shelfName.trim(),
-        room_label: enclosing ? (enclosing.place_name || enclosing.name) : shelfName.trim(),
-        floor_number: floor,
-        floor_level: floor,
-        parent_location_id: enclosing ? enclosing.id : null,
-        location_kind: 'SHELF_DOT',
-        dot_x: x,
-        dot_y: y
-      });
-
-      setMapTool('SELECT');
-      await loadAllData();
-    }
-
-    function addNewBuildingPrompt() {
-      const b = prompt('New Building / Site Name (e.g. Annex Warehouse):');
-      if (!b || !b.trim()) return;
-      const sel = document.getElementById('map-building-select');
-      const opt = document.createElement('option');
-      opt.value = b.trim();
-      opt.textContent = b.trim();
-      sel.appendChild(opt);
-      sel.value = b.trim();
-      renderSpaceMap();
-    }
-
-    function onMapBuildingChange() {
-      renderSpaceMap();
-    }
-
-    function renderSpaceMap() {
-      const buildingSel = document.getElementById('map-building-select');
-      const buildings = Array.from(new Set(['Main Bldg', ...state.locations.map(l => l.building_name || l.site_name).filter(Boolean)]));
-      const currentBldg = buildingSel.value || buildings[0];
-      buildingSel.innerHTML = buildings.map(b => `<option value="${b}">${b}</option>`).join('');
-      buildingSel.value = currentBldg;
-
-      const floor = Number(document.getElementById('map-floor-select').value || 1);
-      const floorLocs = state.locations.filter(l =>
-        (l.building_name || l.site_name || 'Main Bldg') === currentBldg &&
-        (l.floor_number ?? l.floor_level ?? 1) === floor
-      );
-
-      // Sort rooms largest first so nested/overlapping sub-rooms sit cleanly on top
-      const rooms = floorLocs
-        .filter(l => (l.svg_w && l.svg_h) || (l.map_w && l.map_h))
-        .sort((a, b) => ((b.svg_w || b.map_w * 10) * (b.svg_h || b.map_h * 6)) - ((a.svg_w || a.map_w * 10) * (a.svg_h || a.map_h * 6)));
-
-      const dots = floorLocs.filter(l => l.dot_x != null && l.dot_y != null);
-
-      document.getElementById('svg-rooms-layer').innerHTML = rooms.map(r => {
-        const rx = r.svg_x != null ? r.svg_x : (r.map_x || 0) * 10;
-        const ry = r.svg_y != null ? r.svg_y : (r.map_y || 0) * 6.2;
-        const rw = r.svg_w != null ? r.svg_w : (r.map_w || 25) * 10;
-        const rh = r.svg_h != null ? r.svg_h : (r.map_h || 25) * 6.2;
-        const isSub = r.is_sub_room || r.location_kind === 'SUB_ROOM';
-        return `
-          <g onclick="inspectLocation('${r.id}')" class="cursor-pointer">
-            <rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="10"
-              fill="${isSub ? 'rgba(245, 158, 11, 0.18)' : 'rgba(30, 41, 59, 0.65)'}"
-              stroke="${isSub ? '#f59e0b' : '#64748b'}" stroke-width="2.5" />
-            <text x="${rx + 14}" y="${ry + 26}" fill="${isSub ? '#fbbf24' : '#f8fafc'}" font-size="16" font-weight="bold">
-              ${r.place_name || r.room_label || r.name}
-            </text>
-          </g>
-        `;
-      }).join('');
-
-      document.getElementById('svg-dots-layer').innerHTML = dots.map(d => {
-        const dx = d.dot_x <= 100 ? d.dot_x * 10 : d.dot_x;
-        const dy = d.dot_y <= 100 ? d.dot_y * 6.2 : d.dot_y;
-        return `
-          <g onclick="inspectLocation('${d.id}')" class="cursor-pointer">
-            <circle cx="${dx}" cy="${dy}" r="11" fill="#ef4444" stroke="#ffffff" stroke-width="2.5" />
-            <text x="${dx + 15}" y="${dy + 5}" fill="#fca5a5" font-size="13" font-weight="bold">${d.name}</text>
-          </g>
-        `;
-      }).join('');
-
-      document.getElementById('locations-tree-list').innerHTML = floorLocs.map(l => `
-        <div onclick="inspectLocation('${l.id}')" class="cursor-pointer p-2 rounded-lg bg-slate-800/70 hover:bg-slate-800 border border-slate-700 flex items-center justify-between text-xs">
-          <span class="text-slate-200">${l.parent_location_id ? '↳ ' : ''}${getFullLocationPath(l.id)}</span>
-          <button onclick="event.stopPropagation(); openLocationModal('${l.id}')" class="text-amber-400 hover:underline">Edit</button>
-        </div>
-      `).join('') || `<p class="text-xs text-slate-500">No rooms or shelf dots on this floor yet.</p>`;
-    }
-
-    function inspectLocation(locId) {
-      const loc = state.locations.find(l => l.id === locId);
-      if (!loc) return;
-      const itemsHere = state.items.filter(i => !i.deleted_at && i.location_id === locId);
-      document.getElementById('location-inspector').innerHTML = `
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-sm text-amber-400 uppercase">${loc.name}</h3>
-          <button onclick="openLocationModal('${loc.id}')" class="text-xs text-sky-400 hover:underline">Edit Location</button>
-        </div>
-        <p class="text-xs text-slate-400">${getFullLocationPath(loc.id)}</p>
-        <div class="pt-2 space-y-1">
-          <div class="text-xs font-semibold text-slate-300">Items Stored Here (${itemsHere.length}):</div>
-          ${itemsHere.map(i => `<div onclick="openItemDetailModal('${i.id}')" class="cursor-pointer text-xs text-slate-300 hover:text-amber-400 font-mono">${i.sku} — <span class="font-sans">${i.title}</span></div>`).join('') || '<div class="text-xs text-slate-500">No items assigned here yet.</div>'}
-        </div>
-      `;
-    }
-
-    function openLocationModal(editLocId = null) {
-      const loc = editLocId ? state.locations.find(l => l.id === editLocId) : null;
-      document.getElementById('edit-loc-id').value = loc ? loc.id : '';
-      document.getElementById('loc-site').value = loc ? (loc.building_name || loc.site_name || 'Main Bldg') : (document.getElementById('map-building-select').value || 'Main Bldg');
-      document.getElementById('loc-floor').value = loc ? String(loc.floor_number ?? loc.floor_level ?? 1) : (document.getElementById('map-floor-select').value || '1');
-      document.getElementById('loc-place').value = loc ? (loc.place_name || loc.room_label || '') : '';
-      document.getElementById('loc-rack').value = loc && loc.name !== (loc.place_name || loc.room_label) ? loc.name : '';
-
-      document.getElementById('loc-parent').innerHTML =
-        `<option value="">None (Top-Level Room / Zone)</option>` +
-        state.locations.filter(l => l.id !== editLocId).map(l => `<option value="${l.id}">${getFullLocationPath(l.id)}</option>`).join('');
-      document.getElementById('loc-parent').value = loc ? (loc.parent_location_id || '') : '';
-
-      document.getElementById('location-modal').classList.remove('hidden');
-    }
-
-    async function saveLocation() {
-      const site = document.getElementById('loc-site').value.trim() || 'Main Bldg';
-      const floor = Number(document.getElementById('loc-floor').value || 1);
-      const parentId = document.getElementById('loc-parent').value || null;
-      const place = document.getElementById('loc-place').value.trim();
-      const rack = document.getElementById('loc-rack').value.trim();
-      if (!place && !rack) return alert('Enter a room/zone label or sub-location name.');
-
-      const payload = {
-        name: rack || place,
-        building_name: site,
-        site_name: site,
-        place_name: place || rack,
-        room_label: place || rack,
-        floor_number: floor,
-        floor_level: floor,
-        parent_location_id: parentId,
-        is_sub_room: Boolean(parentId)
-      };
-
-      const editId = document.getElementById('edit-loc-id').value;
-      const { error } = editId
-        ? await sb.from('locations').update(payload).eq('id', editId)
-        : await sb.from('locations').insert(payload);
-
-      if (error) return alert(`Save location failed: ${error.message}`);
-      closeModal('location-modal');
-      await loadAllData();
     }
 
     // =========================================================================
-    // REMAINING VIEWS (LISTS, PRINT QUEUE, REPAIRS, AUDIT, TRASH, ADMIN)
+    // REMAINING VIEWS & ITEM MODAL
     // =========================================================================
     function renderLists() {
       const sidebar = document.getElementById('lists-sidebar');
       if (!state.lists.length) {
-        sidebar.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-4 text-xs text-slate-400">No Borrow or Rent lists yet.</div>`;
+        sidebar.innerHTML = `<div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4 text-xs text-neutral-400">No lists yet.</div>`;
         return;
       }
       if (!activeListId && state.lists[0]) activeListId = state.lists[0].id;
@@ -1597,12 +1299,12 @@
         const count = state.listItems.filter(li => li.list_id === l.id).length;
         const isSelected = l.id === activeListId;
         return `
-          <div onclick="selectList('${l.id}')" class="cursor-pointer p-3.5 rounded-xl border transition ${isSelected ? 'bg-slate-800 border-amber-500' : 'bg-slate-900 border-slate-800 hover:border-slate-700'}">
+          <div onclick="selectList('${l.id}')" class="cursor-pointer p-3.5 rounded-xl border transition ${isSelected ? 'bg-[#141414] border-yellow-400' : 'bg-[#0b0b0b] border-neutral-800 hover:border-neutral-700'}">
             <div class="flex items-center justify-between gap-2">
               <span class="font-bold text-sm text-white">${l.name}</span>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded ${l.list_mode === 'RENT' ? 'bg-purple-950 text-purple-300 border border-purple-700' : 'bg-sky-950 text-sky-300 border border-sky-700'}">${l.list_mode}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-yellow-400 text-black">${l.list_mode}</span>
             </div>
-            <p class="text-xs text-slate-400 mt-1">${count} items • Status: ${l.status}</p>
+            <p class="text-xs text-neutral-400 mt-1">${count} items • ${l.status}</p>
           </div>
         `;
       }).join('');
@@ -1620,32 +1322,32 @@
 
       panel.innerHTML = `
         <div class="space-y-4">
-          <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 pb-3">
+          <div class="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-800 pb-3">
             <div>
-              <h3 class="text-lg font-bold text-white">${list.name} <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 ml-1">${list.list_mode}</span></h3>
-              <p class="text-xs text-slate-400 mt-1">Pull Progress: <strong class="text-emerald-400">${pulledCount} / ${rows.length}</strong></p>
+              <h3 class="text-lg font-bold text-white">${list.name} <span class="text-xs font-bold px-2 py-0.5 rounded bg-yellow-400 text-black ml-1">${list.list_mode}</span></h3>
+              <p class="text-xs text-neutral-400 mt-1">Pulled: <strong class="text-yellow-400">${pulledCount} / ${rows.length}</strong></p>
             </div>
             <div class="flex flex-wrap gap-2">
-              <button onclick="printPullSheet('${list.id}')" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-lg">Print Pull Sheet (With QR)</button>
-              <button onclick="markListReturned('${list.id}')" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-2 rounded-lg border border-slate-700">Check-In / Returned</button>
+              <button onclick="printPullSheet('${list.id}')" class="text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-3.5 py-2 rounded-lg">Print Pull Sheet</button>
+              <button onclick="markListReturned('${list.id}')" class="text-xs bg-[#141414] hover:bg-neutral-800 text-white px-3 py-2 rounded-lg border border-neutral-700">Mark Returned</button>
             </div>
           </div>
           <div class="space-y-2">
             ${rows.map(li => {
-              const item = state.items.find(i => i.id === li.item_id) || { title: 'Unknown Item', sku: '------' };
+              const item = state.items.find(i => i.id === li.item_id) || { title: 'Unknown', sku: '------' };
               return `
-                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border ${li.pulled ? 'bg-emerald-950/20 border-emerald-800/60' : 'bg-slate-950/60 border-slate-800'}">
+                <div class="flex items-center justify-between gap-3 p-3 rounded-xl border bg-black border-neutral-800">
                   <label class="flex items-center gap-3 cursor-pointer flex-1">
-                    <input type="checkbox" ${li.pulled ? 'checked' : ''} onchange="toggleListItemPulled('${li.id}', this.checked)" class="w-4 h-4 accent-emerald-500" />
+                    <input type="checkbox" ${li.pulled ? 'checked' : ''} onchange="toggleListItemPulled('${li.id}', this.checked)" class="w-4 h-4 accent-yellow-400" />
                     <div>
-                      <div class="text-sm font-semibold ${li.pulled ? 'line-through text-slate-400' : 'text-white'}">${item.title} <span class="font-mono text-xs text-amber-400">[${item.sku}]</span></div>
-                      <div class="text-xs text-slate-400">${getFullLocationPath(item.location_id)} • Qty: ${li.quantity_requested}</div>
+                      <div class="text-sm font-semibold ${li.pulled ? 'line-through text-neutral-500' : 'text-white'}">${item.title} <span class="font-mono text-xs text-yellow-400">[${item.sku}]</span></div>
+                      <div class="text-xs text-neutral-400">${getFullLocationPath(item.location_id)} • Qty: ${li.quantity_requested}</div>
                     </div>
                   </label>
                   <button onclick="removeListItem('${li.id}')" class="text-xs text-red-400 hover:underline">Remove</button>
                 </div>
               `;
-            }).join('') || `<p class="text-xs text-slate-400 py-4">No items on this list yet.</p>`}
+            }).join('') || `<p class="text-xs text-neutral-400 py-4">No items in this list yet.</p>`}
           </div>
         </div>
       `;
@@ -1674,7 +1376,7 @@
       if (!activeListId) { switchTab('lists'); openNewListModal(); return; }
       await sb.from('list_items').upsert({ list_id: activeListId, item_id: itemId, quantity_requested: 1 }, { onConflict: 'list_id,item_id' });
       await loadAllData();
-      alert('Added to active Borrow/Rent list.');
+      alert('Added to list.');
     }
 
     async function toggleListItemPulled(id, pulled) { await sb.from('list_items').update({ pulled }).eq('id', id); await loadAllData(); }
@@ -1689,8 +1391,8 @@
       printArea.innerHTML = `
         <div class="space-y-4">
           <div class="border-b-2 border-black pb-2 flex justify-between">
-            <div><h1 class="text-xl font-black uppercase">Off Square Theatre Co. — Tech Pull Sheet</h1><p class="text-sm font-bold">${list.name} (${list.list_mode})</p></div>
-            <div class="text-xs">Printed: ${new Date().toLocaleDateString()}</div>
+            <div><h1 class="text-xl font-black uppercase">Off Square Theatre Co. — Pull Sheet</h1><p class="text-sm font-bold">${list.name} (${list.list_mode})</p></div>
+            <div class="text-xs">${new Date().toLocaleDateString()}</div>
           </div>
           <table class="w-full text-left text-xs">
             <thead><tr class="border-b border-black"><th class="py-2">Pull</th><th>SKU</th><th>Item</th><th>Location</th><th class="text-right">QR</th></tr></thead>
@@ -1723,22 +1425,22 @@
     function renderPrintQueue() {
       const queued = state.items.filter(i => !i.deleted_at && i.print_queued);
       const container = document.getElementById('print-queue-list');
-      if (!queued.length) { container.innerHTML = `<div class="col-span-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">Label print queue is empty.</div>`; return; }
+      if (!queued.length) { container.innerHTML = `<div class="col-span-full bg-[#0b0b0b] border border-neutral-800 rounded-xl p-8 text-center text-sm text-neutral-400">Print queue is empty.</div>`; return; }
       container.innerHTML = queued.map(item => `
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4">
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4 flex items-center justify-between gap-4">
           <div class="bg-white text-black rounded-lg p-3 flex-1 flex items-center justify-between gap-3">
             <div>
-              <div class="text-[9px] font-bold uppercase text-gray-600">OFF SQUARE THEATRE CO. - INVENTORY</div>
+              <div class="text-[9px] font-bold uppercase text-neutral-600">OFF SQUARE THEATRE CO.</div>
               <div class="text-sm font-black uppercase">${item.title}</div>
               <div class="text-[10px] font-bold">LOC: ${getGeneralLocationLabel(item.location_id)}</div>
             </div>
             <div class="text-center"><div id="preview-qr-${item.id}"></div><div class="font-mono text-[11px] font-bold">${item.sku || ''}</div></div>
           </div>
           <div class="flex flex-col items-end gap-2">
-            <div class="flex items-center gap-1.5 bg-slate-800 px-2 py-1 rounded-lg">
-              <button onclick="updatePrintCopies('${item.id}', -1)" class="px-1.5 text-white font-bold">-</button>
-              <span class="font-mono text-xs text-amber-400 font-bold">${item.print_copies || 1}x</span>
-              <button onclick="updatePrintCopies('${item.id}', 1)" class="px-1.5 text-white font-bold">+</button>
+            <div class="flex items-center gap-1.5 bg-black px-2 py-1 rounded-lg border border-neutral-700">
+              <button onclick="updatePrintCopies('${item.id}', -1)" class="px-1.5 text-yellow-400 font-bold">-</button>
+              <span class="font-mono text-xs text-white font-bold">${item.print_copies || 1}x</span>
+              <button onclick="updatePrintCopies('${item.id}', 1)" class="px-1.5 text-yellow-400 font-bold">+</button>
             </div>
             <button onclick="togglePrintQueue('${item.id}')" class="text-xs text-red-400">Remove</button>
           </div>
@@ -1767,12 +1469,12 @@
       const printArea = document.getElementById('print-area');
       printArea.innerHTML = labels.map((item, idx) => `
         <div class="thermal-label p-2 flex items-center justify-between gap-2 max-w-[360px]">
-          <div><div class="text-[8px] font-bold uppercase">OFF SQUARE THEATRE CO. - INVENTORY</div><div class="text-sm font-black uppercase">${item.title}</div><div class="text-[9px] font-bold">LOC: ${getGeneralLocationLabel(item.location_id)}</div></div>
+          <div><div class="text-[8px] font-bold uppercase">OFF SQUARE THEATRE CO.</div><div class="text-sm font-black uppercase">${item.title}</div><div class="text-[9px] font-bold">LOC: ${getGeneralLocationLabel(item.location_id)}</div></div>
           <div class="text-center"><div id="print-qr-${idx}"></div><div class="font-mono text-[10px] font-bold">${item.sku || ''}</div></div>
         </div>
       `).join('');
       labels.forEach((item, idx) => { const el = document.getElementById(`print-qr-${idx}`); if (el && item.sku) new QRCode(el, { text: String(item.sku), width: 48, height: 48 }); });
-      setTimeout(() => { window.print(); if (confirm('Did labels print cleanly? Clear queue now?')) clearPrintQueue(); }, 150);
+      setTimeout(() => { window.print(); if (confirm('Labels printed cleanly? Clear queue?')) clearPrintQueue(); }, 150);
     }
 
     function openRepairModal() { document.getElementById('repair-modal').classList.remove('hidden'); }
@@ -1794,7 +1496,7 @@
       const rank = { CRITICAL: 1, HIGH: 2, NORMAL: 3, LOW: 4 };
       const filtered = state.repairs.filter(r => !hideResolved || r.status !== 'RESOLVED').sort((a, b) => (rank[a.priority] || 9) - (rank[b.priority] || 9));
       const container = document.getElementById('repairs-grouped-container');
-      if (!filtered.length) { container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">No repairs matching filter.</div>`; return; }
+      if (!filtered.length) { container.innerHTML = `<div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-8 text-center text-sm text-neutral-400">No repairs.</div>`; return; }
       const groups = {};
       filtered.forEach(r => {
         const linked = state.items.find(i => i.id === r.item_id);
@@ -1803,13 +1505,13 @@
         groups[dept].push({ ...r, linked });
       });
       container.innerHTML = Object.entries(groups).map(([dept, tickets]) => `
-        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-          <div class="bg-slate-800/80 px-4 py-2.5 font-bold text-xs uppercase text-amber-400">${dept} (${tickets.length})</div>
-          <div class="divide-y divide-slate-800">
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl overflow-hidden">
+          <div class="bg-[#141414] px-4 py-2.5 font-bold text-xs uppercase text-yellow-400">${dept} (${tickets.length})</div>
+          <div class="divide-y divide-neutral-900">
             ${tickets.map(t => `
               <div class="p-4 flex items-center justify-between gap-3">
-                <div><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 mr-2">${t.priority}</span><strong class="text-sm text-white">${t.linked ? t.linked.title : t.item_title_snapshot}</strong><p class="text-xs text-slate-300 mt-1">${t.description}</p></div>
-                ${t.status !== 'RESOLVED' ? `<button onclick="resolveRepair('${t.id}')" class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg">Resolve</button>` : `<span class="text-xs text-emerald-400">Resolved</span>`}
+                <div><span class="text-[10px] font-bold px-2 py-0.5 rounded bg-black text-yellow-400 border border-yellow-500/40 mr-2">${t.priority}</span><strong class="text-sm text-white">${t.linked ? t.linked.title : t.item_title_snapshot}</strong><p class="text-xs text-neutral-300 mt-1">${t.description}</p></div>
+                ${t.status !== 'RESOLVED' ? `<button onclick="resolveRepair('${t.id}')" class="text-xs bg-yellow-400 text-black font-bold px-3 py-1.5 rounded-lg">Resolve</button>` : `<span class="text-xs text-yellow-400">Resolved</span>`}
               </div>
             `).join('')}
           </div>
@@ -1823,13 +1525,13 @@
       const targetLoc = document.getElementById('scan-target-location').value;
       const item = state.items.find(i => !i.deleted_at && String(i.sku) === sku);
       const logEl = document.getElementById('scan-audit-log');
-      if (!item) { logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-red-950/60 text-xs text-red-200">SKU "${sku}" not found.</div>`); return; }
+      if (!item) { logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-[#141414] border border-red-500/40 text-xs text-red-300">SKU "${sku}" not found.</div>`); return; }
       if (targetLoc) {
         await sb.from('items').update({ location_id: targetLoc }).eq('id', item.id);
         await loadAllData();
-        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-emerald-950/50 text-xs text-emerald-200">Moved <strong>${item.title}</strong> → ${getFullLocationPath(targetLoc)}</div>`);
+        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-[#141414] border border-yellow-500/40 text-xs text-white">Moved <strong class="text-yellow-400">${item.title}</strong> → ${getFullLocationPath(targetLoc)}</div>`);
       } else {
-        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-slate-800 text-xs text-slate-200">Verified <strong>${item.title}</strong> at ${getFullLocationPath(item.location_id)}</div>`);
+        logEl.insertAdjacentHTML('afterbegin', `<div class="p-2.5 rounded-lg bg-[#141414] border border-neutral-700 text-xs text-white">Verified <strong class="text-yellow-400">${item.title}</strong> at ${getFullLocationPath(item.location_id)}</div>`);
       }
       document.getElementById('scan-sku-input').value = '';
     }
@@ -1840,27 +1542,27 @@
       if (!item) return;
       if (currentRole !== 'ADMIN') {
         const count = getNonAdminOtherDeleteCount();
-        if (item.created_by !== currentUserName && count >= 5) return alert('Safety Guardrail: Non-admin users cannot delete more than 5 items created by others.');
+        if (item.created_by !== currentUserName && count >= 5) return alert('Non-admin limit reached (max 5 items created by others).');
         if (item.created_by !== currentUserName) localStorage.setItem('ost_other_deletes', String(count + 1));
       }
       await sb.from('items').update({ deleted_at: new Date().toISOString(), deleted_by: `${currentUserName} (${currentRole})` }).eq('id', itemId);
       await loadAllData();
     }
     async function restoreItem(id) { await sb.from('items').update({ deleted_at: null, deleted_by: null }).eq('id', id); await loadAllData(); }
-    async function purgeItem(id) { if (currentRole === 'ADMIN' && confirm('Permanently purge item?')) { await sb.from('items').delete().eq('id', id); await loadAllData(); } }
+    async function purgeItem(id) { if (currentRole === 'ADMIN' && confirm('Permanently delete?')) { await sb.from('items').delete().eq('id', id); await loadAllData(); } }
 
     function renderTrash() {
       const trashed = state.items.filter(i => Boolean(i.deleted_at));
-      document.getElementById('non-admin-delete-counter').textContent = currentRole === 'ADMIN' ? 'Admin Mode: Unlimited Restore & Purge' : `Non-Admin Other-Item Deletes: ${getNonAdminOtherDeleteCount()} / 5`;
+      document.getElementById('non-admin-delete-counter').textContent = currentRole === 'ADMIN' ? 'Admin: Unlimited Restore / Purge' : `Non-Admin Other-Item Deletes: ${getNonAdminOtherDeleteCount()} / 5`;
       document.getElementById('trash-list').innerHTML = trashed.map(item => `
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2">
-          <div class="font-bold text-sm text-white">${item.title} [${item.sku}]</div>
+        <div class="bg-[#0b0b0b] border border-neutral-800 rounded-xl p-4 space-y-2">
+          <div class="font-bold text-sm text-white">${item.title} <span class="font-mono text-yellow-400">[${item.sku}]</span></div>
           <div class="flex gap-2">
-            <button onclick="restoreItem('${item.id}')" class="text-xs bg-emerald-600 text-white px-3 py-1 rounded-lg">Restore</button>
-            ${currentRole === 'ADMIN' ? `<button onclick="purgeItem('${item.id}')" class="text-xs bg-red-700 text-white px-3 py-1 rounded-lg">Purge</button>` : ''}
+            <button onclick="restoreItem('${item.id}')" class="text-xs bg-yellow-400 text-black font-bold px-3 py-1 rounded-lg">Restore</button>
+            ${currentRole === 'ADMIN' ? `<button onclick="purgeItem('${item.id}')" class="text-xs bg-black text-red-400 border border-red-500/40 px-3 py-1 rounded-lg">Purge</button>` : ''}
           </div>
         </div>
-      `).join('') || `<div class="col-span-full bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-sm text-slate-400">Trash bin is empty.</div>`;
+      `).join('') || `<div class="col-span-full bg-[#0b0b0b] border border-neutral-800 rounded-xl p-8 text-center text-sm text-neutral-400">Trash is empty.</div>`;
     }
 
     function renderAdmin() {
@@ -1868,9 +1570,19 @@
       document.getElementById('admin-guard-msg').classList.toggle('hidden', isAdmin);
       document.getElementById('admin-panel-content').classList.toggle('hidden', !isAdmin);
       if (!isAdmin) return;
-      document.getElementById('admin-types-list').innerHTML = state.itemTypes.map(t => `<span class="text-xs bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg text-slate-200">${t.label}</span>`).join('');
-      document.getElementById('admin-custom-fields-list').innerHTML = state.customFields.map(f => `<div class="bg-slate-800/60 px-3 py-1.5 rounded border border-slate-700"><strong>${f.department_code}</strong>: ${f.field_label}</div>`).join('');
-      document.getElementById('admin-shows-list').innerHTML = state.shows.map(s => `<span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1 rounded-lg text-amber-300">${s.title}</span>`).join('');
+
+      document.getElementById('admin-colors-list').innerHTML = state.palette.map(c => `
+        <span class="inline-flex items-center gap-2 bg-black border border-neutral-700 px-3 py-1.5 rounded-lg text-xs text-white">
+          <span class="w-3.5 h-3.5 rounded-full border border-white/40" style="background:${c.hex}"></span>
+          <strong class="text-yellow-300">${c.name}</strong>
+          <span class="font-mono text-neutral-400">${c.hex}</span>
+          <button onclick="removeColorDefinition('${c.name.replace(/'/g, "\\'")}')" class="text-red-400 hover:text-red-300 ml-1">&times;</button>
+        </span>
+      `).join('');
+
+      document.getElementById('admin-types-list').innerHTML = state.itemTypes.map(t => `<span class="text-xs bg-black border border-neutral-700 px-2.5 py-1 rounded-lg text-white">${t.label}</span>`).join('');
+      document.getElementById('admin-custom-fields-list').innerHTML = state.customFields.map(f => `<div class="bg-black px-3 py-1.5 rounded border border-neutral-800"><strong class="text-yellow-400">${f.department_code}</strong>: ${f.field_label}</div>`).join('');
+      document.getElementById('admin-shows-list').innerHTML = state.shows.map(s => `<span class="text-xs bg-black border border-yellow-500/30 px-3 py-1 rounded-lg text-yellow-300">${s.title}</span>`).join('');
     }
 
     async function addCustomItemType() {
@@ -1925,52 +1637,23 @@
       a.click();
     }
 
-    // =========================================================================
-    // CATALOG ITEM MODAL & DROPDOWNS
-    // =========================================================================
     function populateDropdowns() {
       const topTypes = state.itemTypes.filter(t => !t.parent_type_id);
       const assetTypes = topTypes.filter(t => !t.is_consumable);
 
       document.getElementById('filter-dept').innerHTML = `<option value="ALL">All Asset Types</option>` + assetTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
       document.getElementById('item-dept').innerHTML = assetTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
-      document.getElementById('new-type-parent').innerHTML = `<option value="">Top-Level Category</option>` + topTypes.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+      document.getElementById('new-type-parent').innerHTML = `<option value="">Top-Level Type</option>` + topTypes.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
       document.getElementById('custom-field-dept').innerHTML = topTypes.map(t => `<option value="${t.code}">${t.label}</option>`).join('');
 
       const locOpts = `<option value="">Unassigned</option>` + state.locations.map(l => `<option value="${l.id}">${getFullLocationPath(l.id)}</option>`).join('');
       document.getElementById('item-location').innerHTML = locOpts;
       document.getElementById('supply-location').innerHTML = locOpts;
-      document.getElementById('scan-target-location').innerHTML = `<option value="">Inspect / Audit Only (No Move)</option>` + state.locations.map(l => `<option value="${l.id}">Move To: ${getFullLocationPath(l.id)}</option>`).join('');
+      document.getElementById('scan-target-location').innerHTML = `<option value="">Inspect Only (No Move)</option>` + state.locations.map(l => `<option value="${l.id}">Move To: ${getFullLocationPath(l.id)}</option>`).join('');
 
       document.getElementById('filter-show').innerHTML = `<option value="ALL">All Shows</option>` + state.shows.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
-      document.getElementById('list-show-id').innerHTML = `<option value="">Optional: Tie to Production / Show</option>` + state.shows.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
+      document.getElementById('list-show-id').innerHTML = `<option value="">Optional: Show</option>` + state.shows.map(s => `<option value="${s.id}">${s.title}</option>`).join('');
       document.getElementById('repair-item-id').innerHTML = state.items.filter(i => !i.deleted_at).map(i => `<option value="${i.id}">[${i.sku}] ${i.title}</option>`).join('');
-    }
-
-    function buildColorPicker() {
-      document.getElementById('color-picker-row').innerHTML = PALETTE.map(c => `
-        <button type="button" data-color="${c.name}" onclick="toggleColor('${c.name}')"
-          class="color-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-xs text-slate-200">
-          <span class="w-3 h-3 rounded-full border border-white/30" style="background:${c.hex}"></span>
-          <span>${c.name}</span>
-        </button>
-      `).join('');
-    }
-
-    function toggleColor(name) {
-      const idx = state.selectedColors.indexOf(name);
-      if (idx >= 0) state.selectedColors.splice(idx, 1);
-      else state.selectedColors.push(name);
-      syncColorPickerUI();
-    }
-
-    function syncColorPickerUI() {
-      document.querySelectorAll('.color-btn').forEach(btn => {
-        const idx = state.selectedColors.indexOf(btn.dataset.color);
-        btn.classList.toggle('border-amber-400', idx >= 0);
-        btn.classList.toggle('ring-2', idx === 0);
-        btn.classList.toggle('ring-amber-400', idx === 0);
-      });
     }
 
     function onItemDeptChange(existingSpecs = {}) {
@@ -1985,8 +1668,8 @@
       }
       const fields = state.customFields.filter(f => f.department_code === deptCode);
       document.getElementById('dynamic-specs-container').innerHTML = fields.length
-        ? fields.map(f => `<div><label class="block text-xs text-slate-400 mb-1">${f.field_label}</label><input data-spec-key="${f.field_key}" type="${f.input_type === 'number' ? 'number' : 'text'}" value="${existingSpecs[f.field_key] || ''}" class="spec-input w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" /></div>`).join('')
-        : `<div class="col-span-full text-xs text-slate-500">No extra custom spec fields for ${deptCode}.</div>`;
+        ? fields.map(f => `<div><label class="block text-xs text-neutral-300 mb-1">${f.field_label}</label><input data-spec-key="${f.field_key}" type="${f.input_type === 'number' ? 'number' : 'text'}" value="${existingSpecs[f.field_key] || ''}" class="spec-input w-full bg-black border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white" /></div>`).join('')
+        : `<div class="col-span-full text-xs text-neutral-500">No extra custom fields for ${deptCode}.</div>`;
     }
 
     function onItemSubtypeChange() {
@@ -2003,7 +1686,7 @@
 
     function renderExistingPhotosPreview() {
       document.getElementById('item-existing-photos').innerHTML = state.selectedPhotos.map((url, idx) => `
-        <div class="relative w-16 h-16 rounded-lg overflow-hidden border-2 ${idx === 0 ? 'border-amber-400' : 'border-slate-700'}">
+        <div class="relative w-16 h-16 rounded-lg overflow-hidden border-2 ${idx === 0 ? 'border-yellow-400' : 'border-neutral-700'}">
           <img src="${url}" onclick="setCoverPhoto(${idx})" class="w-full h-full object-cover cursor-pointer" />
           <button type="button" onclick="removePhoto(${idx})" class="absolute top-0 right-0 bg-black/80 text-red-400 text-xs px-1">&times;</button>
         </div>
@@ -2039,7 +1722,6 @@
       document.getElementById('item-notes').value = item ? (item.description || item.notes || '') : '';
       document.getElementById('item-photo-files').value = '';
 
-      // Delete button visible ONLY when editing an existing item, at the bottom of the Edit Modal
       document.getElementById('btn-delete-in-edit').classList.toggle('hidden', !item);
 
       state.selectedColors = item && Array.isArray(item.colors) ? [...item.colors] : [];
@@ -2053,11 +1735,11 @@
 
       const linkedShowIds = item ? state.itemShows.filter(is => is.item_id === item.id).map(is => is.show_id) : [];
       document.getElementById('item-shows-checkboxes').innerHTML = state.shows.map(s => `
-        <label class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 cursor-pointer">
-          <input type="checkbox" value="${s.id}" ${linkedShowIds.includes(s.id) ? 'checked' : ''} class="item-show-cb accent-amber-500" />
+        <label class="flex items-center gap-1.5 bg-[#141414] px-2.5 py-1 rounded-lg border border-neutral-700 cursor-pointer">
+          <input type="checkbox" value="${s.id}" ${linkedShowIds.includes(s.id) ? 'checked' : ''} class="item-show-cb accent-yellow-400" />
           <span>${s.title}</span>
         </label>
-      `).join('') || '<span class="text-slate-500">No productions added yet.</span>';
+      `).join('') || '<span class="text-neutral-500">No shows added yet.</span>';
 
       document.getElementById('item-modal').classList.remove('hidden');
     }
@@ -2091,7 +1773,7 @@
       const title = document.getElementById('item-title').value.trim();
       const sku = document.getElementById('item-sku').value.trim() || generateCleanSku();
       const department = document.getElementById('item-dept').value;
-      if (!title) return alert('Item Title is required.');
+      if (!title) return alert('Title is required.');
 
       const btn = document.getElementById('btn-save-item');
       btn.disabled = true; btn.textContent = 'Saving...';
@@ -2158,7 +1840,7 @@
       } catch (err) {
         alert(`Error saving item: ${err.message}`);
       } finally {
-        btn.disabled = false; btn.textContent = 'Save Catalog Item';
+        btn.disabled = false; btn.textContent = 'Save Item';
       }
     }
 
